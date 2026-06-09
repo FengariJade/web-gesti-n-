@@ -1,0 +1,289 @@
+<div class="w-full space-y-4">
+
+  <!-- Header con tabs -->
+  <div class="flex items-center gap-6 border-b border-[var(--border-color)] pb-0">
+    <div class="flex items-center gap-4">
+      <button class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+        style="border-color: var(--accent); color: var(--accent)">
+        <iconify-icon icon="lucide:ticket" width="14"></iconify-icon>
+        Tickets
+      </button>
+      <button class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
+        <iconify-icon icon="lucide:calendar-clock" width="14"></iconify-icon>
+        Programa
+      </button>
+    </div>
+    <div class="ml-auto flex items-center gap-2 pb-3">
+      <button class="flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-xl transition-all border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
+        <iconify-icon icon="lucide:layout-list" width="14"></iconify-icon>
+        Vista predeterminada
+        <iconify-icon icon="lucide:chevron-down" width="12"></iconify-icon>
+      </button>
+      <button class="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-xl transition-all border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
+        <iconify-icon icon="lucide:bookmark" width="14"></iconify-icon>
+        Guardar vista
+      </button>
+      <button class="flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-xl transition-all"
+        style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+        Ticket
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de filtros -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative">
+      <iconify-icon icon="lucide:search" width="13"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+      </iconify-icon>
+      <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar..."
+        class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-52"/>
+    </div>
+    <button class="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border transition-all"
+      [style.border-color]="selectedStatus !== 'todos' || selectedPriority !== 'todos' ? 'var(--accent)' : 'var(--border-color)'"
+      [style.color]="selectedStatus !== 'todos' || selectedPriority !== 'todos' ? 'var(--accent)' : 'var(--text-secondary)'"
+      [style.background]="selectedStatus !== 'todos' || selectedPriority !== 'todos' ? 'var(--accent-dim)' : 'transparent'">
+      <iconify-icon icon="lucide:filter" width="13"></iconify-icon>
+      Filtros
+      <span *ngIf="selectedStatus !== 'todos' || selectedPriority !== 'todos'"
+        class="text-xs font-bold">
+        · {{ (selectedStatus !== 'todos' ? 1 : 0) + (selectedPriority !== 'todos' ? 1 : 0) }}
+      </span>
+    </button>
+    <select [(ngModel)]="selectedStatus"
+      class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer">
+      <option *ngFor="let s of statuses" [value]="s">{{ s === 'todos' ? 'Estado' : statusLabel(s) }}</option>
+    </select>
+    <select [(ngModel)]="selectedPriority"
+      class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer">
+      <option *ngFor="let p of priorities" [value]="p">{{ p === 'todos' ? 'Prioridad' : p }}</option>
+    </select>
+    <span class="ml-auto text-xs text-[var(--text-muted)]">
+      Mostrando {{ filtered.length }} de {{ tickets.length }} tickets
+    </span>
+    <button class="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+      <iconify-icon icon="lucide:sliders-horizontal" width="14"></iconify-icon>
+    </button>
+  </div>
+
+  <!-- Acciones bulk -->
+  <div class="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+    <button class="flex items-center gap-1.5 hover:text-red-400 transition-colors">
+      <iconify-icon icon="lucide:trash-2" width="12"></iconify-icon>
+      Eliminar
+    </button>
+    <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+      <iconify-icon icon="lucide:user-check" width="12"></iconify-icon>
+      Asignar ticket
+    </button>
+    <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+      <iconify-icon icon="lucide:activity" width="12"></iconify-icon>
+      Establecer estado
+    </button>
+    <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+      <iconify-icon icon="lucide:arrow-up-down" width="12"></iconify-icon>
+      Establecer prioridad
+    </button>
+    <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+      <iconify-icon icon="lucide:merge" width="12"></iconify-icon>
+      Fusionar tickets
+    </button>
+  </div>
+
+  <!-- Tabla estilo Atera -->
+  <div class="card overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+          <th class="px-4 py-2.5 w-8">
+            <input type="checkbox" class="rounded"/>
+          </th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Logo</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Detalles</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Asignado</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">SLA</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Categoría</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Prioridad</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado act.</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ticket of filtered"
+          (click)="open(ticket)"
+          class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-all group">
+
+          <td class="px-4 py-3">
+            <input type="checkbox" class="rounded" (click)="$event.stopPropagation()"/>
+          </td>
+
+          <!-- Logo / Avatar cliente -->
+          <td class="px-4 py-3">
+            <div class="w-9 h-9 rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] flex items-center justify-center text-sm font-bold text-[var(--text-muted)]">
+              {{ ticket.client.charAt(0) }}
+            </div>
+          </td>
+
+          <!-- Detalles -->
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1 mb-0.5">
+              <span class="text-xs text-[var(--text-muted)]">#{{ ticket.id }}</span>
+              <span class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+                {{ ticket.title }}
+              </span>
+            </div>
+            <p class="text-xs text-[var(--text-muted)]">{{ ticket.client }} · {{ ticket.created }}</p>
+          </td>
+
+          <!-- Asignado -->
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                [style.background]="ticket.assigneeColor">
+                {{ ticket.assigneeInitials }}
+              </div>
+              <span class="text-xs text-[var(--text-secondary)]">{{ ticket.assignee }}</span>
+              <iconify-icon icon="lucide:chevron-down" width="10" class="text-[var(--text-muted)]"></iconify-icon>
+            </div>
+          </td>
+
+          <!-- SLA -->
+          <td class="px-4 py-3">
+            <span class="text-xs font-medium flex items-center gap-1"
+              [style.color]="ticket.slaOk ? 'var(--accent)' : '#ef4444'">
+              <iconify-icon [icon]="ticket.slaOk ? 'lucide:check-circle' : 'lucide:alert-circle'" width="12"></iconify-icon>
+              {{ ticket.sla }}
+            </span>
+          </td>
+
+          <!-- Categoría -->
+          <td class="px-4 py-3">
+            <span class="text-xs text-[var(--text-muted)] bg-[var(--bg-elevated)] px-2 py-0.5 rounded-md">
+              {{ ticket.category }}
+            </span>
+          </td>
+
+          <!-- Prioridad -->
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1.5 text-xs font-medium"
+              [style.color]="priorityColor(ticket.priority)">
+              <iconify-icon icon="lucide:chevrons-up" width="12"></iconify-icon>
+              {{ ticket.priority }}
+            </div>
+          </td>
+
+          <!-- Estado actividad -->
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+              <span class="w-1.5 h-1.5 rounded-full"
+                [style.background]="statusColor(ticket.status)"></span>
+              {{ statusLabel(ticket.status) }}
+            </div>
+          </td>
+
+          <!-- Estado / Acción -->
+          <td class="px-4 py-3">
+            <button (click)="$event.stopPropagation()"
+              class="flex items-center gap-1 text-xs font-medium px-3 py-1 rounded-lg border transition-all hover:opacity-80"
+              [style.border-color]="statusColor(ticket.status)"
+              [style.color]="statusColor(ticket.status)"
+              [style.background]="statusBg(ticket.status)">
+              Abrir
+              <iconify-icon icon="lucide:chevron-down" width="10"></iconify-icon>
+            </button>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filtered.length === 0"
+      class="flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+      <iconify-icon icon="lucide:ticket-x" width="36" class="mb-3 opacity-30"></iconify-icon>
+      <p class="text-sm font-medium">No se encontraron tickets</p>
+      <p class="text-xs mt-1">Intenta ajustar los filtros</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal detalle -->
+<div *ngIf="selectedTicket"
+  class="fixed inset-0 z-50 flex items-center justify-center"
+  style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)"
+  (click)="close()">
+  <div class="w-full max-w-lg card p-6 m-4" (click)="$event.stopPropagation()">
+
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-mono text-[var(--text-muted)]">#{{ selectedTicket.id }}</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-lg capitalize"
+            [style.background]="priorityBg(selectedTicket.priority)"
+            [style.color]="priorityColor(selectedTicket.priority)">
+            {{ selectedTicket.priority }}
+          </span>
+        </div>
+        <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedTicket.title }}</h3>
+      </div>
+      <button (click)="close()"
+        class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:x" width="16"></iconify-icon>
+      </button>
+    </div>
+
+    <div class="space-y-2 mb-5">
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:user" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-20">Cliente</span>
+        <span class="text-sm text-[var(--text-primary)]">{{ selectedTicket.client }}</span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:user-check" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-20">Asignado</span>
+        <div class="flex items-center gap-2">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+            [style.background]="selectedTicket.assigneeColor">
+            {{ selectedTicket.assigneeInitials }}
+          </div>
+          <span class="text-sm text-[var(--text-primary)]">{{ selectedTicket.assignee }}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:tag" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-20">Categoría</span>
+        <span class="text-sm text-[var(--text-primary)]">{{ selectedTicket.category }}</span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:clock" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-20">SLA</span>
+        <span class="text-sm font-medium" [style.color]="selectedTicket.slaOk ? 'var(--accent)' : '#ef4444'">
+          {{ selectedTicket.sla }} — {{ selectedTicket.slaOk ? 'En tiempo' : 'Vencido' }}
+        </span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:activity" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-20">Estado</span>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-lg"
+          [style.background]="statusBg(selectedTicket.status)"
+          [style.color]="statusColor(selectedTicket.status)">
+          {{ statusLabel(selectedTicket.status) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <button class="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-xl transition-all"
+        style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:edit" width="14"></iconify-icon>
+        Editar ticket
+      </button>
+      <button class="flex items-center justify-center gap-2 border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm px-4 py-2 rounded-xl transition-all">
+        <iconify-icon icon="lucide:user-plus" width="14"></iconify-icon>
+        Reasignar
+      </button>
+    </div>
+
+  </div>
+</div>

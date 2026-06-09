@@ -1,0 +1,81 @@
+<aside
+  class="flex flex-col h-screen border-r border-[var(--border-color)] bg-[var(--bg-surface)] transition-all duration-300 shrink-0 backdrop-blur-xl"
+  [style.width]="collapsed ? '64px' : '256px'"
+>
+  <!-- Logo -->
+  <div class="flex items-center border-b border-[var(--border-color)] px-3 py-[21.5px]"
+    [class.justify-between]="!collapsed"
+    [class.justify-center]="collapsed">
+    
+    <div class="flex items-center gap-3" *ngIf="!collapsed">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+        style="background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 32%, transparent)">
+        <iconify-icon icon="solar:calendar-bold-duotone" width="18" style="color: white"></iconify-icon>
+      </div>
+      <span class="text-[var(--text-primary)] font-semibold text-base">
+        Gesti<span class="text-[var(--accent)]">on</span>
+      </span>
+    </div>
+
+    <button
+      class="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--bg-elevated)] transition-all"
+      (click)="toggleCollapse()">
+      <iconify-icon [icon]="collapsed ? 'lucide:panel-right-open' : 'lucide:panel-left-close'" width="16"></iconify-icon>
+    </button>
+  </div>
+
+  <!-- Nav -->
+  <nav class="flex-1 overflow-y-auto px-2 py-4 space-y-1">
+    <p *ngIf="!collapsed"
+      class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium px-3 mb-2">
+      Principal
+    </p>
+
+    <a *ngFor="let item of mainNav"
+      [routerLink]="item.path"
+      routerLinkActive="active"
+      class="nav-item"
+      [title]="collapsed ? item.label : ''">
+      <iconify-icon [icon]="item.icon" width="17" class="shrink-0"></iconify-icon>
+      <span *ngIf="!collapsed">{{ item.label }}</span>
+      <span *ngIf="!collapsed && item.badge"
+        class="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
+        style="background: var(--accent-dim); color: var(--accent)">
+        {{ item.badge }}
+      </span>
+    </a>
+
+    <div *ngIf="!collapsed" class="pt-4">
+      <p class="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium px-3 mb-2">
+        Análisis
+      </p>
+    </div>
+    <div *ngIf="collapsed" class="my-3 border-t border-[var(--border-color)]"></div>
+
+    <a *ngFor="let item of analyticsNav"
+      [routerLink]="item.path"
+      routerLinkActive="active"
+      class="nav-item"
+      [title]="collapsed ? item.label : ''">
+      <iconify-icon [icon]="item.icon" width="17" class="shrink-0"></iconify-icon>
+      <span *ngIf="!collapsed">{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <!-- User -->
+  <!-- <div class="border-t border-[var(--border-color)] p-3">
+    <div class="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-[var(--bg-elevated)] cursor-pointer transition-all">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
+        style="background: linear-gradient(135deg, var(--accent), var(--accent-2))">
+        AG
+      </div>
+      <div *ngIf="!collapsed" class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-[var(--text-primary)] truncate">Ana García</p>
+        <p class="text-xs text-[var(--text-muted)] truncate">Administradora</p>
+      </div>
+      <iconify-icon *ngIf="!collapsed" icon="lucide:chevrons-up-down" width="14"
+        class="text-[var(--text-muted)] shrink-0">
+      </iconify-icon>
+    </div>
+  </div> -->
+</aside>

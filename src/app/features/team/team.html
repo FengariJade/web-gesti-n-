@@ -1,0 +1,262 @@
+<div class="w-full space-y-4">
+  <div class="flex items-center gap-6 border-b border-[var(--border-color)]">
+    <button (click)="activeTab = 'technicians'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'technicians' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'technicians' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:users" width="14"></iconify-icon>
+      Tecnicos
+    </button>
+    <button (click)="activeTab = 'roles'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'roles' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'roles' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:shield-check" width="14"></iconify-icon>
+      Roles y permisos
+    </button>
+    <button (click)="activeTab = 'groups'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'groups' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'groups' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:briefcase-business" width="14"></iconify-icon>
+      Grupos
+    </button>
+    <div class="ml-auto flex items-center gap-2 pb-3">
+      <button class="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-xl border border-[var(--border-color)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:upload" width="14"></iconify-icon>
+        Importar
+      </button>
+      <button (click)="openTechModal()" class="flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:user-plus" width="14"></iconify-icon>
+        Nuevo tecnico
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="activeTab === 'technicians'">
+  <div class="grid grid-cols-4 gap-4">
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: var(--accent-dim); color: var(--accent)">
+        <iconify-icon icon="lucide:users" width="16"></iconify-icon>
+      </div>
+      <div><p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.total }}</p><p class="text-xs text-[var(--text-muted)]">Tecnicos</p></div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-[var(--accent-dim)] text-[var(--accent)] flex items-center justify-center">
+        <iconify-icon icon="lucide:circle-check" width="16"></iconify-icon>
+      </div>
+      <div><p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.available }}</p><p class="text-xs text-[var(--text-muted)]">Disponibles</p></div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+        <iconify-icon icon="lucide:headset" width="16"></iconify-icon>
+      </div>
+      <div><p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.inTicket }}</p><p class="text-xs text-[var(--text-muted)]">En ticket</p></div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+        <iconify-icon icon="lucide:check-check" width="16"></iconify-icon>
+      </div>
+      <div><p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.resolved }}</p><p class="text-xs text-[var(--text-muted)]">Resueltos hoy</p></div>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative">
+      <iconify-icon icon="lucide:search" width="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></iconify-icon>
+      <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar tecnico, sitio o email..." class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-72" />
+    </div>
+    <select [(ngModel)]="selectedStatus" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none">
+      <option *ngFor="let status of statuses" [value]="status">{{ status === 'todos' ? 'Estado' : status }}</option>
+    </select>
+    <select [(ngModel)]="selectedRole" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none">
+      <option *ngFor="let role of roles" [value]="role">{{ role === 'todos' ? 'Rol' : role }}</option>
+    </select>
+    <span class="ml-auto text-xs text-[var(--text-muted)]">Mostrando {{ filteredTechnicians.length }} de {{ technicians.length }}</span>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+          <th class="px-4 py-2.5 w-8"><input type="checkbox" class="rounded" /></th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tecnico</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Rol</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Sitio</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Carga</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tickets abiertos</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Respuesta</th>
+          <th class="px-4 py-2.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tech of filteredTechnicians" (click)="openProfile(tech)" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-all group">
+          <td class="px-4 py-3"><input type="checkbox" class="rounded" (click)="$event.stopPropagation()" /></td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white" [style.background]="tech.color">{{ tech.initials }}</div>
+              <div>
+                <p class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)]">{{ tech.name }}</p>
+                <p class="text-xs text-[var(--text-muted)]">{{ tech.email }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ tech.role }}</td>
+          <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ tech.site }}</td>
+          <td class="px-4 py-3">
+            <span class="text-xs font-medium px-2 py-0.5 rounded-lg flex items-center gap-1 w-fit" [style.background]="statusColor(tech.status) + '1f'" [style.color]="statusColor(tech.status)">
+              <span class="w-1.5 h-1.5 rounded-full" [style.background]="statusColor(tech.status)"></span>{{ tech.status }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <div class="w-24 h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden"><div class="h-full rounded-full" [style.width.%]="tech.workload" [style.background]="workloadColor(tech.workload)"></div></div>
+              <span class="text-xs font-medium" [style.color]="workloadColor(tech.workload)">{{ tech.workload }}%</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ tech.openTickets }}</td>
+          <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ tech.responseTime }}</td>
+          <td class="px-4 py-3 text-right"><iconify-icon icon="lucide:chevron-right" width="14" class="text-[var(--text-muted)] group-hover:text-[var(--accent)]"></iconify-icon></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'roles'">
+    <div class="card overflow-hidden">
+      <div class="p-5 border-b border-[var(--border-color)]">
+        <h3 class="font-semibold text-[var(--text-primary)]">Roles y permisos</h3>
+        <p class="text-xs text-[var(--text-muted)]">Controla que puede hacer cada tipo de tecnico.</p>
+      </div>
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Rol</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Usuarios</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tickets</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Remoto</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Parches</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Reportes</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">IA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let role of roleMatrix" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)]">
+            <td class="px-4 py-3 text-sm font-medium text-[var(--text-primary)]">{{ role.role }}</td>
+            <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ role.users }}</td>
+            <td class="px-4 py-3" *ngFor="let allowed of [role.tickets, role.remote, role.patches, role.reports, role.ai]">
+              <button class="w-9 h-5 rounded-full p-0.5 transition-all" [style.background]="allowed ? 'var(--accent)' : 'var(--border-color)'">
+                <span class="block w-4 h-4 rounded-full bg-white transition-all" [style.transform]="allowed ? 'translateX(16px)' : 'translateX(0)'"></span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'groups'">
+    <div class="grid grid-cols-3 gap-4">
+      <div *ngFor="let group of groups" class="card p-5">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [style.background]="group.color + '1f'" [style.color]="group.color">
+            <iconify-icon icon="lucide:briefcase-business" width="18"></iconify-icon>
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)]">{{ group.members }} miembros</span>
+        </div>
+        <p class="font-semibold text-[var(--text-primary)]">{{ group.name }}</p>
+        <p class="text-xs text-[var(--text-muted)] mt-1">{{ group.queue }}</p>
+        <div class="mt-4 flex items-center justify-between rounded-xl bg-[var(--bg-elevated)] p-3">
+          <span class="text-xs text-[var(--text-muted)]">SLA objetivo</span>
+          <span class="text-sm font-semibold" [style.color]="group.color">{{ group.sla }}</span>
+        </div>
+        <button class="w-full mt-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Administrar grupo</button>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<div *ngIf="selectedTech" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="closeProfile()">
+  <div class="w-full max-w-lg card p-6 m-4" (click)="$event.stopPropagation()">
+    <div class="flex items-start justify-between mb-5">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold text-white" [style.background]="selectedTech.color">{{ selectedTech.initials }}</div>
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedTech.name }}</h3>
+          <p class="text-sm text-[var(--text-muted)]">{{ selectedTech.role }} - {{ selectedTech.site }}</p>
+        </div>
+      </div>
+      <button (click)="closeProfile()" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="grid grid-cols-3 gap-3 mb-5">
+      <div class="rounded-xl bg-[var(--bg-elevated)] p-3"><p class="text-xs text-[var(--text-muted)]">Abiertos</p><p class="text-xl font-semibold text-[var(--text-primary)]">{{ selectedTech.openTickets }}</p></div>
+      <div class="rounded-xl bg-[var(--bg-elevated)] p-3"><p class="text-xs text-[var(--text-muted)]">Resueltos</p><p class="text-xl font-semibold text-[var(--text-primary)]">{{ selectedTech.resolvedToday }}</p></div>
+      <div class="rounded-xl bg-[var(--bg-elevated)] p-3"><p class="text-xs text-[var(--text-muted)]">Respuesta</p><p class="text-xl font-semibold text-[var(--text-primary)]">{{ selectedTech.responseTime }}</p></div>
+    </div>
+    <div class="flex gap-2">
+      <button (click)="assignTicket(selectedTech)" class="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-xl" style="background: var(--accent); color: var(--bg-base)"><iconify-icon icon="lucide:ticket-plus" width="14"></iconify-icon>Asignar ticket</button>
+      <button (click)="showPermissionPanel = !showPermissionPanel" class="flex items-center justify-center gap-2 border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm px-4 py-2 rounded-xl"><iconify-icon icon="lucide:shield" width="14"></iconify-icon>Permisos</button>
+    </div>
+    <div *ngIf="showPermissionPanel" class="mt-5 pt-4 border-t border-[var(--border-color)] space-y-3">
+      <div *ngFor="let permission of permissions" class="flex items-center justify-between rounded-xl bg-[var(--bg-elevated)] p-3">
+        <span class="text-sm text-[var(--text-secondary)]">{{ permission.label }}</span>
+        <button (click)="permission.enabled = !permission.enabled" class="w-10 h-5 rounded-full p-0.5 transition-all" [style.background]="permission.enabled ? 'var(--accent)' : 'var(--border-color)'">
+          <span class="block w-4 h-4 rounded-full bg-white transition-all" [style.transform]="permission.enabled ? 'translateX(20px)' : 'translateX(0)'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showTechModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="showTechModal = false">
+  <form class="w-full max-w-2xl card p-6 m-4" (click)="$event.stopPropagation()" (ngSubmit)="createTechnician()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">Nuevo tecnico</h3>
+        <p class="text-sm text-[var(--text-muted)]">Agrega un miembro operativo y define su rol inicial.</p>
+      </div>
+      <button type="button" (click)="showTechModal = false" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Nombre completo</span>
+        <input [(ngModel)]="techForm.name" name="techName" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="Carlos Vega" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Correo</span>
+        <input [(ngModel)]="techForm.email" name="techEmail" required type="email" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="carlos@gestion.com" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Rol</span>
+        <select [(ngModel)]="techForm.role" name="techRole" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option *ngFor="let role of roles.slice(1)" [value]="role">{{ role }}</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Sitio</span>
+        <select [(ngModel)]="techForm.site" name="techSite" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option *ngFor="let site of sites" [value]="site">{{ site }}</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Estado</span>
+        <select [(ngModel)]="techForm.status" name="techStatus" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>Disponible</option>
+          <option>En ticket</option>
+          <option>Fuera</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Tiempo de respuesta objetivo</span>
+        <input [(ngModel)]="techForm.responseTime" name="responseTime" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="15m" />
+      </label>
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Carga inicial: {{ techForm.workload }}%</span>
+        <input [(ngModel)]="techForm.workload" name="workload" type="range" min="0" max="100" class="w-full accent-[var(--accent)]" />
+      </label>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button type="button" (click)="showTechModal = false" class="px-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium" style="background: var(--accent); color: var(--bg-base)">Crear tecnico</button>
+    </div>
+  </form>
+</div>

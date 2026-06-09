@@ -1,0 +1,299 @@
+﻿<div class="w-full space-y-4">
+  <div class="flex items-center gap-6 border-b border-[var(--border-color)]">
+    <button (click)="activeTab = 'overview'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'overview' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'overview' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:sparkles" width="14"></iconify-icon>
+      Vista general
+    </button>
+    <button (click)="activeTab = 'integrations'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'integrations' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'integrations' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:plug" width="14"></iconify-icon>
+      Integraciones
+    </button>
+    <button (click)="activeTab = 'actions'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'actions' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'actions' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:wand-sparkles" width="14"></iconify-icon>
+      Acciones cloud
+    </button>
+    <div class="ml-auto flex items-center gap-2 pb-3">
+      <select [(ngModel)]="selectedRange" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none">
+        <option *ngFor="let range of ranges" [value]="range">{{ range }}</option>
+      </select>
+      <button (click)="openActionModal()" class="flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+        Nueva accion
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="activeTab === 'overview'">
+  <div class="grid grid-cols-4 gap-4">
+    <div *ngFor="let stat of stats" class="card p-5">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" [style.background]="stat.color + '1f'" [style.color]="stat.color">
+          <iconify-icon [icon]="'lucide:' + stat.icon" width="18"></iconify-icon>
+        </div>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-lg" style="background: var(--accent-dim); color: var(--accent)">{{ stat.trend }}</span>
+      </div>
+      <p class="text-2xl font-semibold text-[var(--text-primary)]">{{ stat.value }}</p>
+      <p class="text-sm text-[var(--text-secondary)]">{{ stat.label }}</p>
+      <p class="text-xs text-[var(--text-muted)] mt-2">{{ stat.helper }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-7 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">Horas ahorradas en tickets</h3>
+          <p class="text-xs text-[var(--text-muted)]">Promedio diario calculado por acciones automatizadas</p>
+        </div>
+        <span class="text-xs px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)]">Prom. 15.5h</span>
+      </div>
+      <div class="flex items-end gap-2 h-48">
+        <div *ngFor="let value of hoursByDay; let i = index" class="flex-1 flex flex-col items-center gap-2">
+          <div class="w-full rounded-t-lg transition-all" [style.height.%]="(value / maxValue(hoursByDay)) * 100" style="background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 35%, transparent))"></div>
+          <span class="text-[10px] text-[var(--text-muted)]">{{ i + 1 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-5 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-semibold text-[var(--text-primary)]">Tickets resueltos por IA</h3>
+        <iconify-icon icon="lucide:activity" width="16" style="color: var(--accent)"></iconify-icon>
+      </div>
+      <div class="space-y-4">
+        <div *ngFor="let row of ticketTrend">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[var(--text-secondary)]">{{ row.day }}</span>
+            <span class="text-xs text-[var(--text-muted)]">{{ row.solved }} resueltos / {{ row.total }} total</span>
+          </div>
+          <div class="h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden flex">
+            <div class="h-full bg-[var(--accent)]" [style.width.%]="(row.solved / row.total) * 100"></div>
+            <div class="h-full bg-blue-500/60" [style.width.%]="((row.assisted - row.solved) / row.total) * 100"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 mt-5 text-xs text-[var(--text-muted)]">
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>Resuelto</span>
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500/60"></span>Asistido</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-5 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-semibold text-[var(--text-primary)]">Nivel de optimizacion IA</h3>
+        <span class="text-lg font-semibold" style="color: var(--accent)">72%</span>
+      </div>
+      <div class="h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden mb-5">
+        <div class="h-full rounded-full" style="width: 72%; background: var(--accent)"></div>
+      </div>
+      <div class="space-y-3">
+        <div *ngFor="let task of tasks" class="flex items-start gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" [style.background]="taskColor(task.status) + '1f'" [style.color]="taskColor(task.status)">
+            <iconify-icon [icon]="'lucide:' + task.icon" width="15"></iconify-icon>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-[var(--text-primary)] truncate">{{ task.title }}</p>
+              <span class="text-[10px] px-2 py-0.5 rounded-lg shrink-0" [style.background]="taskColor(task.status) + '1f'" [style.color]="taskColor(task.status)">{{ taskBadge(task.status) }}</span>
+            </div>
+            <p class="text-xs text-[var(--text-muted)] mt-0.5">{{ task.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-7 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-semibold text-[var(--text-primary)]">Insights accionables</h3>
+        <button class="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)]">Ver todos</button>
+      </div>
+      <div class="space-y-3">
+        <button *ngFor="let insight of insights" (click)="openInsight(insight)" class="w-full text-left p-4 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] transition-all">
+          <div class="flex items-start gap-3">
+            <span class="w-2 h-2 rounded-full mt-1.5 shrink-0" [style.background]="insight.color"></span>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-[var(--text-primary)]">{{ insight.title }}</p>
+              <p class="text-xs text-[var(--text-muted)] mt-1">{{ insight.detail }}</p>
+            </div>
+            <span class="text-xs font-medium shrink-0" [style.color]="insight.color">{{ insight.impact }}</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'integrations'">
+    <div class="grid grid-cols-4 gap-4">
+      <div *ngFor="let integration of integrations" class="card p-5">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [style.background]="integration.color + '1f'" [style.color]="integration.color">
+            <iconify-icon [icon]="'lucide:' + integration.icon" width="18"></iconify-icon>
+          </div>
+          <span class="text-[10px] font-medium px-2 py-0.5 rounded-lg"
+            [style.background]="integration.status === 'Conectado' ? 'rgba(49,95,244,0.16)' : 'rgba(245,158,11,0.15)'"
+            [style.color]="integration.status === 'Conectado' ? '#315ff4' : '#f59e0b'">
+            {{ integration.status }}
+          </span>
+        </div>
+        <p class="font-semibold text-[var(--text-primary)]">{{ integration.name }}</p>
+        <p class="text-xs text-[var(--text-muted)] mt-1">{{ integration.type }}</p>
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[var(--text-muted)]">Salud</span>
+            <span class="text-xs font-semibold" [style.color]="integration.color">{{ integration.health }}%</span>
+          </div>
+          <div class="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+            <div class="h-full rounded-full" [style.width.%]="integration.health" [style.background]="integration.color"></div>
+          </div>
+        </div>
+        <button class="w-full mt-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">
+          Configurar
+        </button>
+      </div>
+    </div>
+    <div class="card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-4">Eventos de integracion</h3>
+      <div class="space-y-3">
+        <div *ngFor="let integration of integrations" class="flex items-center justify-between rounded-xl bg-[var(--bg-elevated)] p-3">
+          <div class="flex items-center gap-3">
+            <iconify-icon [icon]="'lucide:' + integration.icon" width="15" [style.color]="integration.color"></iconify-icon>
+            <span class="text-sm text-[var(--text-primary)]">{{ integration.name }}</span>
+          </div>
+          <span class="text-xs text-[var(--text-muted)]">Ultima sincronizacion: hace {{ integration.health > 80 ? '8 min' : '2 h' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'actions'">
+  <div class="card overflow-hidden">
+    <div class="flex items-center justify-between p-5 border-b border-[var(--border-color)]">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">Acciones cloud</h3>
+        <p class="text-xs text-[var(--text-muted)]">Automatizaciones disponibles para Copilot y Autopilot</p>
+      </div>
+      <span class="text-xs text-[var(--text-muted)]">{{ cloudActions.length }} acciones</span>
+    </div>
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Accion</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Disparador</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Metodo</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Responsable</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+          <th class="px-4 py-2.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let action of cloudActions" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)]">
+          <td class="px-4 py-3">
+            <p class="text-sm font-medium text-[var(--text-primary)]">{{ action.name }}</p>
+            <p class="text-xs text-[var(--text-muted)] font-mono">{{ action.endpoint }}</p>
+          </td>
+          <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ action.trigger }}</td>
+          <td class="px-4 py-3"><span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500">{{ action.method }}</span></td>
+          <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ action.owner }}</td>
+          <td class="px-4 py-3">
+            <span class="text-xs font-medium px-2 py-0.5 rounded-lg" [style.background]="action.status === 'Activa' ? 'rgba(49,95,244,0.16)' : 'rgba(245,158,11,0.15)'" [style.color]="action.status === 'Activa' ? '#315ff4' : '#f59e0b'">{{ action.status }}</span>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button (click)="runAction(action)" class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--bg-card)]">
+              <iconify-icon icon="lucide:play" width="14"></iconify-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  </ng-container>
+</div>
+
+<div *ngIf="showActionModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="showActionModal = false">
+  <form class="w-full max-w-2xl card p-6 m-4" (click)="$event.stopPropagation()" (ngSubmit)="saveAction()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">Nueva accion cloud</h3>
+        <p class="text-sm text-[var(--text-muted)]">Define una accion que Copilot pueda proponer o ejecutar.</p>
+      </div>
+      <button type="button" (click)="showActionModal = false" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Nombre de la accion</span>
+        <input [(ngModel)]="actionForm.name" name="actionName" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="Resolver ticket por API" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Disparador</span>
+        <select [(ngModel)]="actionForm.trigger" name="trigger" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>Ticket nuevo</option>
+          <option>Prioridad critica</option>
+          <option>Categoria impresoras</option>
+          <option>Solicitud de permisos</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Metodo</span>
+        <select [(ngModel)]="actionForm.method" name="method" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>POST</option>
+          <option>GET</option>
+          <option>PATCH</option>
+          <option>PUT</option>
+        </select>
+      </label>
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Endpoint o recurso</span>
+        <input [(ngModel)]="actionForm.endpoint" name="endpoint" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none font-mono" placeholder="/tickets/{id}/resolve" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Responsable</span>
+        <select [(ngModel)]="actionForm.owner" name="owner" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>Ana Garcia</option>
+          <option>Miguel Ruiz</option>
+          <option>Pablo Garcia</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Estado inicial</span>
+        <select [(ngModel)]="actionForm.status" name="status" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>Borrador</option>
+          <option>Activa</option>
+        </select>
+      </label>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button type="button" (click)="showActionModal = false" class="px-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium" style="background: var(--accent); color: var(--bg-base)">Crear accion</button>
+    </div>
+  </form>
+</div>
+
+<div *ngIf="showInsightModal && selectedInsight" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="closeInsight()">
+  <div class="w-full max-w-lg card p-6 m-4" (click)="$event.stopPropagation()">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedInsight.title }}</h3>
+        <p class="text-sm text-[var(--text-muted)] mt-1">{{ selectedInsight.detail }}</p>
+      </div>
+      <button (click)="closeInsight()" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="rounded-xl bg-[var(--bg-elevated)] p-4 mb-5">
+      <p class="text-xs text-[var(--text-muted)]">Impacto estimado</p>
+      <p class="text-xl font-semibold mt-1" [style.color]="selectedInsight.color">{{ selectedInsight.impact }}</p>
+    </div>
+    <button (click)="openActionModal(); closeInsight()" class="w-full flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+      <iconify-icon icon="lucide:wand-sparkles" width="14"></iconify-icon>
+      Crear accion desde insight
+    </button>
+  </div>
+</div>

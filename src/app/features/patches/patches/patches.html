@@ -1,0 +1,431 @@
+<div class="w-full space-y-5">
+
+  <!-- Header -->
+  <div>
+    <h2 class="text-lg font-semibold text-[var(--text-primary)]">Gestión de parches</h2>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex items-center gap-1 border-b border-[var(--border-color)]">
+    <button (click)="activeTab = 'resumen'; showPatchesDropdown = false"
+      class="text-sm font-medium px-4 pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'resumen' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'resumen' ? 'var(--accent)' : 'var(--text-muted)'">
+      Resumen
+    </button>
+    <button (click)="activeTab = 'dispositivos'; showPatchesDropdown = false"
+      class="text-sm font-medium px-4 pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'dispositivos' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'dispositivos' ? 'var(--accent)' : 'var(--text-muted)'">
+      Dispositivos
+    </button>
+
+    <!-- Parches del SO con dropdown -->
+    <div class="relative">
+      <button (click)="showPatchesDropdown = !showPatchesDropdown"
+        class="flex items-center gap-1.5 text-sm font-medium px-4 pb-3 border-b-2 transition-all"
+        [style.border-color]="activeTab === 'parches' ? 'var(--accent)' : 'transparent'"
+        [style.color]="activeTab === 'parches' ? 'var(--accent)' : 'var(--text-muted)'">
+        Parches del SO
+        <iconify-icon icon="lucide:chevron-down" width="12"></iconify-icon>
+      </button>
+      <div *ngIf="showPatchesDropdown"
+        class="absolute top-full left-0 mt-1 w-48 card shadow-lg z-20 overflow-hidden py-1">
+        <button (click)="setPatchesTab('disponibles')"
+          class="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-elevated)] transition-all"
+          [style.color]="patchesSubTab === 'disponibles' && activeTab === 'parches' ? 'var(--accent)' : 'var(--text-secondary)'">
+          Parches disponibles
+        </button>
+        <button (click)="setPatchesTab('fallidos')"
+          class="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-elevated)] transition-all"
+          [style.color]="patchesSubTab === 'fallidos' && activeTab === 'parches' ? 'var(--accent)' : 'var(--text-secondary)'">
+          Parches fallidos
+        </button>
+        <button (click)="setPatchesTab('instalados')"
+          class="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-elevated)] transition-all"
+          [style.color]="patchesSubTab === 'instalados' && activeTab === 'parches' ? 'var(--accent)' : 'var(--text-secondary)'">
+          Parches instalados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Resumen -->
+  <div *ngIf="activeTab === 'resumen'" class="space-y-4">
+
+    <!-- Filtros chips -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:map-pin" width="12"></iconify-icon>Ubicaciones
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:folder" width="12"></iconify-icon>Carpetas
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+        style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+        <iconify-icon icon="lucide:monitor" width="12"></iconify-icon>Tipos de dispositivo · 1
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+        style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+        <iconify-icon icon="lucide:wifi" width="12"></iconify-icon>Disponibilidad · 2
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:tag" width="12"></iconify-icon>Clasificaciones
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:rotate-ccw" width="12"></iconify-icon>Restablecer
+      </button>
+    </div>
+
+    <div class="grid grid-cols-12 gap-4">
+      <div class="col-span-7 card p-5">
+        <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-4">Estado de parcheo del SO</h3>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-2xl font-bold text-[var(--text-primary)]">{{ patchPercent }}%</span>
+          <span class="text-xs text-[var(--text-muted)]">{{ patchedDevices }} de {{ totalDevices }} dispositivos</span>
+        </div>
+        <div class="h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden mb-6">
+          <div class="h-full rounded-full transition-all duration-700"
+            [style.width.%]="patchPercent" style="background: var(--accent)"></div>
+        </div>
+        <div class="grid grid-cols-4 gap-4">
+          <div *ngFor="let os of osStats" class="flex flex-col items-center gap-2">
+            <div class="relative w-20 h-20">
+              <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--bg-elevated)" stroke-width="10"/>
+                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--accent)" stroke-width="10"
+                  stroke-dasharray="238.76"
+                  [attr.stroke-dashoffset]="238.76 * (1 - os.patched / os.total)"
+                  stroke-linecap="round"
+                  [style.opacity]="os.patched === 0 ? '0' : '1'"/>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <iconify-icon [icon]="os.icon" width="20" class="text-[var(--text-secondary)]"></iconify-icon>
+              </div>
+            </div>
+            <p class="text-xs text-center text-[var(--text-muted)] leading-tight">{{ os.label }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-5 card p-5">
+        <div class="grid grid-cols-2 gap-x-6">
+          <div class="border-b border-[var(--border-color)] pb-2 mb-2">
+            <p class="text-sm font-semibold text-[var(--text-primary)]">Dispositivos</p>
+          </div>
+          <div class="border-b border-[var(--border-color)] pb-2 mb-2">
+            <p class="text-sm font-semibold text-[var(--text-primary)]">Parches de SO</p>
+          </div>
+          <ng-container *ngFor="let stat of deviceStats; let i = index">
+            <div class="flex items-center gap-3 py-2.5"
+              [class.border-b]="i < deviceStats.length - 2"
+              [style.border-color]="'var(--border-color)'">
+              <iconify-icon [icon]="stat.icon" width="17" class="text-[var(--text-muted)] shrink-0"></iconify-icon>
+              <div>
+                <p class="text-xl font-bold text-[var(--text-primary)]">{{ stat.value }}</p>
+                <p class="text-[10px] text-[var(--text-muted)] leading-tight">{{ stat.label }}</p>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)]">Principales dispositivos vulnerables</h3>
+          <a class="text-xs cursor-pointer flex items-center gap-1" style="color: var(--accent-2)">
+            Ver todos los dispositivos <iconify-icon icon="lucide:arrow-right" width="11"></iconify-icon>
+          </a>
+        </div>
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[var(--border-color)]">
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Nombre del dispositivo</th>
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Tipo de dispositivo</th>
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Faltan parches del SO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let device of vulnerableDevices"
+              class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] transition-all cursor-pointer">
+              <td class="py-2.5 text-sm font-medium text-[var(--text-primary)] font-mono">{{ device.name }}</td>
+              <td class="py-2.5">
+                <span class="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                  <iconify-icon [icon]="typeIcon(device.type)" width="12"></iconify-icon>{{ device.type }}
+                </span>
+              </td>
+              <td class="py-2.5">
+                <span class="text-xs font-medium px-2 py-0.5 rounded-lg bg-red-500/10 text-red-500">
+                  {{ device.missingPatches }} parches
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)]">Principales parches faltantes del SO</h3>
+          <a class="text-xs cursor-pointer flex items-center gap-1" style="color: var(--accent-2)">
+            Ver todos los parches del SO <iconify-icon icon="lucide:arrow-right" width="11"></iconify-icon>
+          </a>
+        </div>
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[var(--border-color)]">
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Nombre del parche</th>
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Clasificación</th>
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Tipo de SO</th>
+              <th class="text-left pb-2 text-xs text-[var(--text-muted)] font-medium">Dispositivos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let patch of missingPatches"
+              class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] transition-all cursor-pointer">
+              <td class="py-2.5 pr-3 text-xs font-medium text-[var(--text-primary)]">{{ patch.name }}</td>
+              <td class="py-2.5">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-lg"
+                  [style.background]="classBg(patch.classification)"
+                  [style.color]="classColor(patch.classification)">{{ patch.classification }}</span>
+              </td>
+              <td class="py-2.5 text-xs text-[var(--text-muted)]">{{ patch.osType }}</td>
+              <td class="py-2.5 text-xs font-medium text-[var(--text-primary)]">{{ patch.devices }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Dispositivos -->
+  <div *ngIf="activeTab === 'dispositivos'" class="space-y-3">
+
+    <!-- Filtros -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="relative">
+        <iconify-icon icon="lucide:search" width="13"
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></iconify-icon>
+        <input [(ngModel)]="searchDevices" type="text" placeholder="Buscar..."
+          class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-44"/>
+      </div>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:map-pin" width="12"></iconify-icon>Ubicaciones
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:folder" width="12"></iconify-icon>Carpetas
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+        style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+        <iconify-icon icon="lucide:arrow-up-circle" width="12"></iconify-icon>Se requiere actualización de OS +1
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:tag" width="12"></iconify-icon>Clasificaciones
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+        style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+        <iconify-icon icon="lucide:filter" width="12"></iconify-icon>Filtros · 1
+      </button>
+      <span class="ml-auto text-xs text-[var(--text-muted)]">Mostrando {{ filteredDevices.length }} de {{ deviceRows.length }} dispositivos</span>
+      <button class="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:sliders-horizontal" width="14"></iconify-icon>
+      </button>
+      <button class="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:download" width="14"></iconify-icon>
+      </button>
+    </div>
+
+    <!-- Acción bulk -->
+    <div class="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+      <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+        <iconify-icon icon="lucide:refresh-cw" width="12"></iconify-icon>Reiniciar
+      </button>
+    </div>
+
+    <!-- Tabla dispositivos -->
+    <div class="card overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+            <th class="px-4 py-2.5 w-8"><input type="checkbox" class="rounded"/></th>
+            <th class="px-3 py-2.5 w-8"></th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Dispositivo</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">IA</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Último inicio de sesión</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Disponibilidad</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tipo de disp.</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Sitio</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Carpeta</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Último escaneo</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Parches dispon. ↓</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Reinicio pend.</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Act. de software</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let d of filteredDevices"
+            class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-all group">
+            <td class="px-4 py-3"><input type="checkbox" class="rounded" (click)="$event.stopPropagation()"/></td>
+            <td class="px-3 py-3">
+              <iconify-icon [icon]="typeIcon(d.type)" width="15" class="text-[var(--text-muted)]"></iconify-icon>
+            </td>
+            <td class="px-4 py-3">
+              <span class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors font-mono">{{ d.name }}</span>
+            </td>
+            <td class="px-4 py-3">
+              <iconify-icon icon="lucide:sparkles" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+            </td>
+            <td class="px-4 py-3 text-xs text-[var(--text-secondary)]">{{ d.lastLogin }}</td>
+            <td class="px-4 py-3">
+              <span class="flex items-center gap-1.5 text-xs font-medium"
+                [style.color]="availColor(d.availability)">
+                <span class="w-1.5 h-1.5 rounded-full" [style.background]="availColor(d.availability)"></span>
+                {{ d.availability }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ d.type }}</td>
+            <td class="px-4 py-3 text-xs text-[var(--text-secondary)]">{{ d.site }}</td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ d.folder }}</td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ d.lastScan }}</td>
+            <td class="px-4 py-3">
+              <span *ngIf="d.patchesAvailable > 0"
+                class="text-xs font-medium px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-500">
+                {{ d.patchesAvailable }}
+              </span>
+              <span *ngIf="d.patchesAvailable === 0" class="text-xs text-[var(--text-muted)]">—</span>
+            </td>
+            <td class="px-4 py-3">
+              <iconify-icon *ngIf="d.restartPending" icon="lucide:refresh-cw" width="14" class="text-orange-500"></iconify-icon>
+              <span *ngIf="!d.restartPending" class="text-xs text-[var(--text-muted)]">—</span>
+            </td>
+            <td class="px-4 py-3">
+              <span *ngIf="d.softwareUpdates > 0"
+                class="text-xs font-medium px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-500">
+                {{ d.softwareUpdates }}
+              </span>
+              <span *ngIf="d.softwareUpdates === 0" class="text-xs text-[var(--text-muted)]">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredDevices.length === 0"
+        class="flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+        <iconify-icon icon="lucide:monitor-x" width="36" class="mb-3 opacity-30"></iconify-icon>
+        <p class="text-sm font-medium">No hay dispositivos que coincidan con tu búsqueda...</p>
+        <p class="text-xs mt-1">Intenta buscar diferentes palabras clave o ajustar tus filtros.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Parches del SO -->
+  <div *ngIf="activeTab === 'parches'" class="space-y-3">
+
+    <h3 class="text-sm font-semibold text-[var(--text-primary)]">
+      Parches {{ patchesSubTab }}
+    </h3>
+
+    <!-- Filtros -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="relative">
+        <iconify-icon icon="lucide:search" width="13"
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></iconify-icon>
+        <input [(ngModel)]="searchPatches" type="text" placeholder="Buscar..."
+          class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-44"/>
+      </div>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:map-pin" width="12"></iconify-icon>Ubicaciones
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:folder" width="12"></iconify-icon>Carpetas
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:monitor" width="12"></iconify-icon>Tipos de OS
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:tag" width="12"></iconify-icon>Clasificaciones
+      </button>
+      <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+        style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+        <iconify-icon icon="lucide:filter" width="12"></iconify-icon>Filtros · 1
+      </button>
+      <span class="ml-auto text-xs text-[var(--text-muted)]">Mostrando {{ filteredPatches.length }} de {{ patchRows.length }} parches</span>
+      <button class="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:sliders-horizontal" width="14"></iconify-icon>
+      </button>
+      <button class="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:download" width="14"></iconify-icon>
+      </button>
+    </div>
+
+    <!-- Acción bulk -->
+    <div class="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+      <button class="flex items-center gap-1.5 hover:text-[var(--accent)] transition-colors">
+        <iconify-icon icon="lucide:download" width="12"></iconify-icon>Instalar
+      </button>
+    </div>
+
+    <!-- Tabla parches -->
+    <div class="card overflow-hidden">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+            <th class="px-4 py-2.5 w-8"><input type="checkbox" class="rounded"/></th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Nombre</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tipo de SO</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Clasificación</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Productos com.</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tamaño</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">CVEs</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">CVSS</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Reinicio requer.</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Dispositivos ↓</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPatches"
+            class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-all group">
+            <td class="px-4 py-3"><input type="checkbox" class="rounded" (click)="$event.stopPropagation()"/></td>
+            <td class="px-4 py-3">
+              <span class="text-xs font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">{{ p.name }}</span>
+            </td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ p.osType }}</td>
+            <td class="px-4 py-3">
+              <span class="text-[10px] font-medium px-2 py-0.5 rounded-lg"
+                [style.background]="classBg(p.classification)"
+                [style.color]="classColor(p.classification)">{{ p.classification }}</span>
+            </td>
+            <td class="px-4 py-3 text-xs text-[var(--text-secondary)]">{{ p.products }}</td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ p.size }}</td>
+            <td class="px-4 py-3">
+              <span *ngIf="p.cves > 0" class="text-xs font-medium text-red-500">{{ p.cves }}</span>
+              <span *ngIf="p.cves === 0" class="text-xs text-[var(--text-muted)]">—</span>
+            </td>
+            <td class="px-4 py-3">
+              <span class="text-xs font-medium"
+                [class.text-red-500]="p.cvss >= 9"
+                [class.text-orange-500]="p.cvss >= 7 && p.cvss < 9"
+                [class.text-amber-500]="p.cvss >= 4 && p.cvss < 7"
+                [class.text-[var(--accent)]]="p.cvss < 4">
+                {{ p.cvss }}
+              </span>
+            </td>
+            <td class="px-4 py-3">
+              <iconify-icon *ngIf="p.restartRequired" icon="lucide:check" width="14" class="text-orange-500"></iconify-icon>
+              <span *ngIf="!p.restartRequired" class="text-xs text-[var(--text-muted)]">—</span>
+            </td>
+            <td class="px-4 py-3 text-xs font-medium text-[var(--text-primary)]">{{ p.devices }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="filteredPatches.length === 0"
+        class="flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+        <iconify-icon icon="lucide:shield-check" width="36" class="mb-3 opacity-30"></iconify-icon>
+        <p class="text-sm font-medium">Todos los dispositivos están actualizados</p>
+        <p class="text-xs mt-1">¡Woohoo!</p>
+      </div>
+    </div>
+  </div>
+
+</div>

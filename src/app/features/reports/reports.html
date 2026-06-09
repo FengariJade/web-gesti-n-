@@ -1,0 +1,277 @@
+﻿<div class="w-full space-y-4">
+  <div class="flex items-center gap-6 border-b border-[var(--border-color)]">
+    <button (click)="activeTab = 'reports'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'reports' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'reports' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:bar-chart-3" width="14"></iconify-icon>
+      Reportes
+    </button>
+    <button (click)="activeTab = 'templates'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'templates' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'templates' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:layout-template" width="14"></iconify-icon>
+      Plantillas
+    </button>
+    <button (click)="activeTab = 'scheduled'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'scheduled' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'scheduled' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:send" width="14"></iconify-icon>
+      Programados
+    </button>
+    <div class="ml-auto flex items-center gap-2 pb-3">
+      <select [(ngModel)]="selectedPeriod" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none">
+        <option *ngFor="let period of periods" [value]="period">{{ period }}</option>
+      </select>
+      <button (click)="selectedReport = filteredReports[0]" class="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-xl border border-[var(--border-color)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:download" width="14"></iconify-icon>
+        Exportar
+      </button>
+      <button (click)="openReportModal()" class="flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+        Nuevo reporte
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="activeTab === 'reports'">
+  <div class="grid grid-cols-4 gap-4">
+    <div *ngFor="let metric of metrics" class="card p-5">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center" [style.background]="metric.color + '1f'" [style.color]="metric.color">
+          <iconify-icon [icon]="'lucide:' + metric.icon" width="18"></iconify-icon>
+        </div>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-lg" style="background: var(--accent-dim); color: var(--accent)">{{ metric.change }}</span>
+      </div>
+      <p class="text-2xl font-semibold text-[var(--text-primary)]">{{ metric.value }}</p>
+      <p class="text-sm text-[var(--text-secondary)]">{{ metric.label }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-7 card p-5">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">Tickets abiertos vs cerrados</h3>
+          <p class="text-xs text-[var(--text-muted)]">Comparativo mensual del servicio</p>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Abiertos</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[var(--accent)]"></span>Cerrados</span>
+        </div>
+      </div>
+      <div class="flex items-end gap-4 h-48">
+        <div *ngFor="let row of monthly" class="flex-1 flex flex-col items-center gap-2">
+          <div class="w-full flex items-end justify-center gap-1" style="height: 150px">
+            <div class="w-5 rounded-t-md bg-blue-500/70" [style.height.%]="(row.opened / maxMonthly) * 100"></div>
+            <div class="w-5 rounded-t-md bg-[var(--accent)]" [style.height.%]="(row.closed / maxMonthly) * 100"></div>
+          </div>
+          <span class="text-[10px] text-[var(--text-muted)]">{{ row.month }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-span-5 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-semibold text-[var(--text-primary)]">Clientes con mas actividad</h3>
+        <button class="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)]">Ver detalle</button>
+      </div>
+      <div class="space-y-4">
+        <div *ngFor="let customer of topCustomers">
+          <div class="flex items-center justify-between mb-1.5">
+            <div>
+              <p class="text-sm font-medium text-[var(--text-primary)]">{{ customer.name }}</p>
+              <p class="text-xs text-[var(--text-muted)]">{{ customer.tickets }} tickets</p>
+            </div>
+            <span class="text-xs font-semibold" [style.color]="customer.color">{{ customer.sla }}% SLA</span>
+          </div>
+          <div class="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+            <div class="h-full rounded-full" [style.width.%]="customer.sla" [style.background]="customer.color"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'templates'">
+  <div class="card p-5">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="relative">
+        <iconify-icon icon="lucide:search" width="13" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"></iconify-icon>
+        <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar reporte..." class="bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-64" />
+      </div>
+      <select [(ngModel)]="selectedCategory" class="bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none">
+        <option *ngFor="let category of categories" [value]="category">{{ category === 'todos' ? 'Todas las categorias' : category }}</option>
+      </select>
+      <span class="ml-auto text-xs text-[var(--text-muted)]">{{ filteredReports.length }} reportes disponibles</span>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3">
+      <button *ngFor="let report of filteredReports" (click)="previewReport(report)" class="text-left p-4 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] hover:border-[var(--accent)] transition-all group">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" [style.background]="report.color + '1f'" [style.color]="report.color">
+            <iconify-icon [icon]="'lucide:' + report.icon" width="18"></iconify-icon>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] truncate">{{ report.name }}</p>
+              <span class="text-[10px] px-2 py-0.5 rounded-md bg-[var(--bg-card)] text-[var(--text-muted)] shrink-0">{{ report.category }}</span>
+            </div>
+            <p class="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{{ report.description }}</p>
+            <p class="text-[10px] text-[var(--text-muted)] mt-3">Actualizado: {{ report.updated }}</p>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'scheduled'">
+    <div class="card overflow-hidden">
+      <div class="flex items-center justify-between p-5 border-b border-[var(--border-color)]">
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">Reportes programados</h3>
+          <p class="text-xs text-[var(--text-muted)]">Entregas automaticas por correo y periodicidad.</p>
+        </div>
+        <button (click)="openReportModal()" class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+          <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+          Programar reporte
+        </button>
+      </div>
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Reporte</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Frecuencia</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Destinatarios</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Ultima ejecucion</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+            <th class="px-4 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of scheduledReports" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)]">
+            <td class="px-4 py-3 text-sm font-medium text-[var(--text-primary)]">{{ report.name }}</td>
+            <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ report.cadence }}</td>
+            <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ report.recipients }}</td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ report.lastRun }}</td>
+            <td class="px-4 py-3">
+              <span class="text-xs px-2 py-0.5 rounded-lg" [style.background]="report.status === 'Activo' ? 'rgba(49,95,244,0.16)' : 'rgba(245,158,11,0.15)'" [style.color]="report.status === 'Activo' ? '#315ff4' : '#f59e0b'">{{ report.status }}</span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <button (click)="report.status = report.status === 'Activo' ? 'Pausado' : 'Activo'" class="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--bg-card)]">
+                <iconify-icon [icon]="report.status === 'Activo' ? 'lucide:pause' : 'lucide:play'" width="14"></iconify-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card p-5">
+        <p class="text-xs text-[var(--text-muted)]">Entregas este mes</p>
+        <p class="text-2xl font-semibold text-[var(--text-primary)] mt-2">42</p>
+      </div>
+      <div class="card p-5">
+        <p class="text-xs text-[var(--text-muted)]">Tasa de apertura</p>
+        <p class="text-2xl font-semibold text-[var(--text-primary)] mt-2">81%</p>
+      </div>
+      <div class="card p-5">
+        <p class="text-xs text-[var(--text-muted)]">Pendientes hoy</p>
+        <p class="text-2xl font-semibold text-[var(--text-primary)] mt-2">3</p>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<div *ngIf="showReportModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="showReportModal = false">
+  <form class="w-full max-w-2xl card p-6 m-4" (click)="$event.stopPropagation()" (ngSubmit)="createReport()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">Nuevo reporte</h3>
+        <p class="text-sm text-[var(--text-muted)]">Crea una plantilla operacional o analitica.</p>
+      </div>
+      <button type="button" (click)="showReportModal = false" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Nombre del reporte</span>
+        <input [(ngModel)]="reportForm.name" name="reportName" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="SLA por cliente y tecnico" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Categoria</span>
+        <select [(ngModel)]="reportForm.category" name="reportCategory" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option *ngFor="let category of categories.slice(1)" [value]="category">{{ category }}</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Entrega</span>
+        <select [(ngModel)]="reportForm.delivery" name="delivery" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>Manual</option>
+          <option>Diario 08:00</option>
+          <option>Semanal lunes</option>
+          <option>Mensual dia 1</option>
+        </select>
+      </label>
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Descripcion</span>
+        <textarea [(ngModel)]="reportForm.description" name="reportDescription" required rows="3" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none resize-none" placeholder="Incluye tickets cerrados, tiempo de primera respuesta y cumplimiento SLA por cliente."></textarea>
+      </label>
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Destinatarios</span>
+        <input [(ngModel)]="reportForm.recipients" name="recipients" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="operaciones@gestion.com, gerencia@gestion.com" />
+      </label>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button type="button" (click)="showReportModal = false" class="px-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium" style="background: var(--accent); color: var(--bg-base)">Crear reporte</button>
+    </div>
+  </form>
+</div>
+
+<div *ngIf="selectedReport" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="closePreview()">
+  <div class="w-full max-w-3xl card p-6 m-4" (click)="$event.stopPropagation()">
+    <div class="flex items-start justify-between mb-5">
+      <div class="flex items-start gap-3">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center" [style.background]="selectedReport.color + '1f'" [style.color]="selectedReport.color">
+          <iconify-icon [icon]="'lucide:' + selectedReport.icon" width="20"></iconify-icon>
+        </div>
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedReport.name }}</h3>
+          <p class="text-sm text-[var(--text-muted)]">{{ selectedReport.description }}</p>
+        </div>
+      </div>
+      <button (click)="closePreview()" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="grid grid-cols-3 gap-3 mb-5">
+      <div class="rounded-xl bg-[var(--bg-elevated)] p-3"><p class="text-xs text-[var(--text-muted)]">Categoria</p><p class="text-lg font-semibold text-[var(--text-primary)]">{{ selectedReport.category }}</p></div>
+      <div class="rounded-xl bg-[var(--bg-elevated)] p-3"><p class="text-xs text-[var(--text-muted)]">Periodo</p><p class="text-lg font-semibold text-[var(--text-primary)]">{{ selectedPeriod }}</p></div>
+      <div class="rounded-xl bg-[var(--bg-elevated)] p-3"><p class="text-xs text-[var(--text-muted)]">Actualizado</p><p class="text-lg font-semibold text-[var(--text-primary)]">{{ selectedReport.updated }}</p></div>
+    </div>
+    <div class="rounded-xl border border-[var(--border-color)] overflow-hidden mb-5">
+      <table class="w-full">
+        <thead>
+          <tr class="bg-[var(--bg-elevated)] border-b border-[var(--border-color)]">
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Cliente</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tickets</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">SLA</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of topCustomers" class="border-b border-[var(--border-color)]">
+            <td class="px-4 py-3 text-sm text-[var(--text-primary)]">{{ customer.name }}</td>
+            <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ customer.tickets }}</td>
+            <td class="px-4 py-3 text-sm font-medium" [style.color]="customer.color">{{ customer.sla }}%</td>
+            <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-lg bg-[var(--accent-dim)] text-[var(--accent)]">Disponible</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button (click)="exportReport(selectedReport)" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]"><iconify-icon icon="lucide:file-down" width="14"></iconify-icon>Exportar PDF</button>
+      <button (click)="exportReport(selectedReport)" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium" style="background: var(--accent); color: var(--bg-base)"><iconify-icon icon="lucide:send" width="14"></iconify-icon>Programar envio</button>
+    </div>
+  </div>
+</div>

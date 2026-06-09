@@ -1,0 +1,219 @@
+<div class="w-full space-y-4">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--text-primary)]">Sitios</h2>
+      <p class="text-sm text-[var(--text-muted)]">{{ sites.length }} ubicaciones registradas</p>
+    </div>
+    <button class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all"
+      style="background: var(--accent); color: var(--bg-base)">
+      <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+      Nueva ubicación
+      <iconify-icon icon="lucide:chevron-down" width="12"></iconify-icon>
+    </button>
+  </div>
+
+  <!-- Filtros estilo Atera -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative">
+      <iconify-icon icon="lucide:search" width="13"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+      </iconify-icon>
+      <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar..."
+        class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-56"/>
+    </div>
+
+    <button class="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+      <iconify-icon icon="lucide:globe" width="13"></iconify-icon>
+      País
+    </button>
+
+    <button class="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+      <iconify-icon icon="lucide:map" width="13"></iconify-icon>
+      Región
+    </button>
+
+    <span class="ml-auto text-xs text-[var(--text-muted)]">
+      Mostrando {{ filtered.length }} de {{ sites.length }} sitios
+    </span>
+    <button class="p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+      <iconify-icon icon="lucide:sliders-horizontal" width="14"></iconify-icon>
+    </button>
+  </div>
+
+  <!-- Acciones bulk -->
+  <div class="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+    <button class="flex items-center gap-1.5 hover:text-red-400 transition-colors">
+      <iconify-icon icon="lucide:trash-2" width="12"></iconify-icon>
+      Eliminar
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+          <th class="px-4 py-2.5 w-8">
+            <input type="checkbox" class="rounded"/>
+          </th>
+          <th class="px-4 py-2.5 w-12"></th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Nombre</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Dispositivos no supervisados</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Teléfono</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Dirección</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Contacto principal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let site of filtered"
+          (click)="open(site)"
+          class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-all group">
+
+          <td class="px-4 py-3">
+            <input type="checkbox" class="rounded" (click)="$event.stopPropagation()"/>
+          </td>
+
+          <!-- Inicial -->
+          <td class="px-4 py-3">
+            <div class="w-9 h-9 rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] flex items-center justify-center text-sm font-bold text-[var(--text-muted)]">
+              {{ site.name.charAt(0) }}
+            </div>
+          </td>
+
+          <!-- Nombre -->
+          <td class="px-4 py-3">
+            <p class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+              {{ site.name }}
+            </p>
+            <p class="text-xs text-[var(--text-muted)]">{{ site.country }} · {{ site.region }}</p>
+          </td>
+
+          <!-- Dispositivos no supervisados -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.devicesUnmanaged > 0"
+              class="text-xs font-medium px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-500">
+              {{ site.devicesUnmanaged }} dispositivos
+            </span>
+            <span *ngIf="site.devicesUnmanaged === 0"
+              class="text-xs text-[var(--text-muted)]">
+              —
+            </span>
+          </td>
+
+          <!-- Teléfono -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.phone" class="flex items-center gap-1.5 text-sm text-[var(--text-secondary)]">
+              <iconify-icon icon="lucide:phone" width="12" class="text-[var(--text-muted)]"></iconify-icon>
+              {{ site.phone }}
+            </span>
+            <button *ngIf="!site.phone"
+              class="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+              (click)="$event.stopPropagation()">
+              <iconify-icon icon="lucide:phone-plus" width="12"></iconify-icon>
+              Añadir teléfono
+            </button>
+          </td>
+
+          <!-- Dirección -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.address" class="text-sm text-[var(--text-secondary)] truncate max-w-[200px] block">
+              {{ site.address }}
+            </span>
+            <button *ngIf="!site.address"
+              class="text-xs text-[var(--text-muted)] italic hover:text-[var(--accent)] transition-colors"
+              (click)="$event.stopPropagation()">
+              Introducir dirección
+            </button>
+          </td>
+
+          <!-- Contacto principal -->
+          <td class="px-4 py-3">
+            <p class="text-sm font-medium transition-colors" style="color: var(--accent-2)">
+              {{ site.contact }}
+            </p>
+            <p class="text-xs text-[var(--text-muted)]">{{ site.contactPhone }}</p>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filtered.length === 0"
+      class="flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+      <iconify-icon icon="lucide:map-pin-off" width="36" class="mb-3 opacity-30"></iconify-icon>
+      <p class="text-sm font-medium">No se encontraron sitios</p>
+      <p class="text-xs mt-1">Intenta ajustar los filtros</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal detalle -->
+<div *ngIf="selectedSite"
+  class="fixed inset-0 z-50 flex items-center justify-center"
+  style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)"
+  (click)="close()">
+  <div class="w-full max-w-lg card p-6 m-4" (click)="$event.stopPropagation()">
+
+    <div class="flex items-start justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl border border-[var(--border-color)] bg-[var(--bg-elevated)] flex items-center justify-center text-lg font-bold text-[var(--text-secondary)]">
+          {{ selectedSite.name.charAt(0) }}
+        </div>
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedSite.name }}</h3>
+          <p class="text-xs text-[var(--text-muted)]">{{ selectedSite.country }} · {{ selectedSite.region }}</p>
+        </div>
+      </div>
+      <button (click)="close()"
+        class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:x" width="16"></iconify-icon>
+      </button>
+    </div>
+
+    <div class="space-y-2 mb-5">
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:phone" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-28">Teléfono</span>
+        <span class="text-sm text-[var(--text-primary)]">{{ selectedSite.phone }}</span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:map-pin" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-28">Dirección</span>
+        <span class="text-sm text-[var(--text-primary)]">{{ selectedSite.address }}</span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:user" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-28">Contacto</span>
+        <div>
+          <p class="text-sm font-medium" style="color: var(--accent-2)">{{ selectedSite.contact }}</p>
+          <p class="text-xs text-[var(--text-muted)]">{{ selectedSite.contactPhone }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:monitor" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-28">Sin supervisar</span>
+        <span class="text-sm font-medium"
+          [class.text-amber-500]="selectedSite.devicesUnmanaged > 0"
+          [class.text-[var(--text-muted)]]="selectedSite.devicesUnmanaged === 0">
+          {{ selectedSite.devicesUnmanaged > 0 ? selectedSite.devicesUnmanaged + ' dispositivos' : 'Ninguno' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <button class="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-xl transition-all"
+        style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:edit" width="14"></iconify-icon>
+        Editar sitio
+      </button>
+      <button class="flex items-center justify-center gap-2 border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm px-4 py-2 rounded-xl transition-all">
+        <iconify-icon icon="lucide:monitor" width="14"></iconify-icon>
+        Ver dispositivos
+      </button>
+    </div>
+
+  </div>
+</div>

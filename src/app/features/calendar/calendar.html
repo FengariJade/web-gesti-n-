@@ -1,0 +1,295 @@
+<div class="w-full space-y-4">
+  <div class="flex items-center gap-6 border-b border-[var(--border-color)]">
+    <button (click)="activeTab = 'calendar'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'calendar' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'calendar' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:calendar-days" width="14"></iconify-icon>
+      Calendario
+    </button>
+    <button (click)="activeTab = 'scheduled'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'scheduled' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'scheduled' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:ticket" width="14"></iconify-icon>
+      Tickets programados
+    </button>
+    <button (click)="activeTab = 'sync'" class="flex items-center gap-2 text-sm font-medium pb-3 border-b-2 transition-all"
+      [style.border-color]="activeTab === 'sync' ? 'var(--accent)' : 'transparent'"
+      [style.color]="activeTab === 'sync' ? 'var(--accent)' : 'var(--text-muted)'">
+      <iconify-icon icon="lucide:link" width="14"></iconify-icon>
+      Sincronizacion
+    </button>
+    <div class="ml-auto flex items-center gap-2 pb-3">
+      <select [(ngModel)]="selectedTechnician" class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none">
+        <option *ngFor="let tech of technicians" [value]="tech">{{ tech === 'todos' ? 'Todos los tecnicos' : tech }}</option>
+      </select>
+      <div class="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-1">
+        <button (click)="viewMode = 'month'" class="px-3 py-1 rounded-lg text-xs font-medium" [style.background]="viewMode === 'month' ? 'var(--accent)' : 'transparent'" [style.color]="viewMode === 'month' ? 'var(--bg-base)' : 'var(--text-muted)'">Mes</button>
+        <button (click)="viewMode = 'week'" class="px-3 py-1 rounded-lg text-xs font-medium" [style.background]="viewMode === 'week' ? 'var(--accent)' : 'transparent'" [style.color]="viewMode === 'week' ? 'var(--bg-base)' : 'var(--text-muted)'">Semana</button>
+      </div>
+      <button (click)="openTicketModal()" class="flex items-center gap-2 text-sm font-medium px-4 py-1.5 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+        Programar ticket
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="activeTab === 'calendar'">
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-8 card overflow-hidden">
+      <div class="flex items-center justify-between p-5 border-b border-[var(--border-color)]">
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">{{ monthNames[currentMonth] }} {{ currentYear }}</h3>
+          <p class="text-xs text-[var(--text-muted)]">{{ filteredTickets.length }} tickets programados</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <button (click)="prevMonth()" class="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--accent)]"><iconify-icon icon="lucide:chevron-left" width="16"></iconify-icon></button>
+          <button (click)="nextMonth()" class="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--accent)]"><iconify-icon icon="lucide:chevron-right" width="16"></iconify-icon></button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-7 bg-[var(--bg-elevated)] border-b border-[var(--border-color)]">
+        <div *ngFor="let day of ['Lun','Mar','Mie','Jue','Vie','Sab','Dom']" class="text-center text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider py-2">{{ day }}</div>
+      </div>
+
+      <div class="grid grid-cols-7">
+        <button *ngFor="let day of calendarDays" (click)="selectDay(day)" (dblclick)="openReminderModal(day)" class="min-h-28 border-r border-b border-[var(--border-color)] text-left p-2 transition-all" [class.hover:bg-[var(--bg-elevated)]]="day" [class.bg-[var(--accent-dim)]]="day === selectedDay" [disabled]="!day">
+          <span class="text-xs font-medium" [class.text-[var(--text-primary)]]="day" [class.text-transparent]="!day">{{ day || 0 }}</span>
+          <span *ngIf="day && hasReminders(day)" class="ml-1 inline-flex w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+          <div class="space-y-1 mt-2" *ngIf="day && hasTickets(day)">
+            <div *ngFor="let ticket of ticketsForDay(day)" class="rounded-md px-2 py-1 text-[10px] font-medium truncate" [style.background]="ticket.color + '1f'" [style.color]="ticket.color">
+              {{ ticket.start }} {{ ticket.title }}
+            </div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="col-span-4 space-y-4">
+      <div class="card p-5">
+        <h3 class="font-semibold text-[var(--text-primary)] mb-1">{{ selectedDay ? selectedDay + ' de ' + monthNames[currentMonth] : 'Selecciona un dia' }}</h3>
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-xs text-[var(--text-muted)]">{{ selectedTickets.length }} tickets y {{ selectedReminders.length }} recordatorios</p>
+          <button (click)="openReminderModal()" class="text-xs font-medium text-[var(--accent)] hover:opacity-80">Agregar recordatorio</button>
+        </div>
+        <div class="space-y-3">
+          <div *ngFor="let ticket of selectedTickets" class="p-3 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] transition-all">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs text-[var(--text-muted)]">#{{ ticket.id }} - {{ ticket.customer }}</p>
+                <p class="text-sm font-medium text-[var(--text-primary)] mt-0.5">{{ ticket.title }}</p>
+              </div>
+              <span class="text-[10px] font-medium px-2 py-0.5 rounded-lg shrink-0" [style.background]="statusColor(ticket.status) + '1f'" [style.color]="statusColor(ticket.status)">{{ ticket.status }}</span>
+            </div>
+            <div class="flex items-center justify-between mt-3 text-xs text-[var(--text-muted)]">
+              <span class="flex items-center gap-1"><iconify-icon icon="lucide:clock" width="11"></iconify-icon>{{ ticket.start }} - {{ ticket.duration }}</span>
+              <span class="flex items-center gap-1"><span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] text-white" [style.background]="ticket.color">{{ ticket.technicianInitials }}</span>{{ ticket.technician }}</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="selectedTickets.length === 0" class="flex flex-col items-center justify-center py-8 text-[var(--text-muted)]">
+          <iconify-icon icon="lucide:calendar-x" width="30" class="mb-2 opacity-40"></iconify-icon>
+          <p class="text-xs">No hay tickets programados</p>
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-[var(--text-primary)]">Recordatorios</h3>
+          <iconify-icon icon="lucide:bell" width="15" class="text-[var(--text-muted)]"></iconify-icon>
+        </div>
+        <div class="space-y-2">
+          <div *ngFor="let reminder of selectedReminders" class="flex items-start gap-3 rounded-xl bg-[var(--bg-elevated)] p-3">
+            <button (click)="reminder.done = !reminder.done" class="mt-0.5 w-4 h-4 rounded border border-[var(--border-color)] flex items-center justify-center" [style.background]="reminder.done ? 'var(--accent)' : 'transparent'">
+              <iconify-icon *ngIf="reminder.done" icon="lucide:check" width="11" style="color: var(--bg-base)"></iconify-icon>
+            </button>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-[var(--text-primary)]" [class.line-through]="reminder.done">{{ reminder.title }}</p>
+              <p class="text-xs text-[var(--text-muted)] mt-0.5">{{ reminder.time }} - {{ reminder.note || 'Sin nota' }}</p>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="selectedReminders.length === 0" class="py-5 text-center text-xs text-[var(--text-muted)]">Sin recordatorios para este dia</div>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-[var(--text-primary)]">Proximos tickets</h3>
+          <button class="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)]">Abrir cola</button>
+        </div>
+        <div class="space-y-3">
+          <div *ngFor="let ticket of filteredTickets.slice(0, 4)" class="flex items-center gap-3 cursor-pointer group" (click)="selectDay(ticket.day)">
+            <div class="w-10 h-10 rounded-lg flex flex-col items-center justify-center text-[10px] font-semibold" [style.background]="ticket.color + '1f'" [style.color]="ticket.color">
+              <span>{{ ticket.day }}</span>
+              <span>{{ ticket.start }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--accent)]">{{ ticket.title }}</p>
+              <p class="text-[10px] text-[var(--text-muted)] truncate">{{ ticket.customer }} - {{ ticket.technician }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'scheduled'">
+    <div class="card overflow-hidden">
+      <div class="flex items-center justify-between p-5 border-b border-[var(--border-color)]">
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">Tickets programados</h3>
+          <p class="text-xs text-[var(--text-muted)]">Cola ordenada por dia, prioridad y tecnico asignado.</p>
+        </div>
+        <button (click)="openTicketModal()" class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl" style="background: var(--accent); color: var(--bg-base)">
+          <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+          Programar ticket
+        </button>
+      </div>
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Ticket</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Cliente</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Tecnico</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Fecha</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Prioridad</th>
+            <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ticket of filteredTickets" (click)="selectDay(ticket.day); activeTab = 'calendar'" class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer">
+            <td class="px-4 py-3">
+              <p class="text-sm font-medium text-[var(--text-primary)]">#{{ ticket.id }} {{ ticket.title }}</p>
+              <p class="text-xs text-[var(--text-muted)]">{{ ticket.start }} - {{ ticket.duration }}</p>
+            </td>
+            <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ ticket.customer }}</td>
+            <td class="px-4 py-3 text-sm text-[var(--text-secondary)]">{{ ticket.technician }}</td>
+            <td class="px-4 py-3 text-xs text-[var(--text-muted)]">{{ ticket.day }} {{ monthNames[currentMonth] }}</td>
+            <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-lg" [style.background]="ticket.color + '1f'" [style.color]="ticket.color">{{ ticket.priority }}</span></td>
+            <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded-lg" [style.background]="statusColor(ticket.status) + '1f'" [style.color]="statusColor(ticket.status)">{{ ticket.status }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="activeTab === 'sync'">
+    <div class="grid grid-cols-3 gap-4">
+      <div *ngFor="let connection of syncConnections" class="card p-5">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" [style.background]="connection.color + '1f'" [style.color]="connection.color">
+            <iconify-icon icon="lucide:calendar-sync" width="18"></iconify-icon>
+          </div>
+          <span class="text-xs px-2 py-0.5 rounded-lg" [style.background]="connection.color + '1f'" [style.color]="connection.color">{{ connection.status }}</span>
+        </div>
+        <p class="font-semibold text-[var(--text-primary)]">{{ connection.name }}</p>
+        <p class="text-xs text-[var(--text-muted)] mt-1">{{ connection.account }}</p>
+        <div class="mt-4 rounded-xl bg-[var(--bg-elevated)] p-3">
+          <p class="text-xs text-[var(--text-muted)]">Ultima sincronizacion</p>
+          <p class="text-sm font-medium text-[var(--text-primary)] mt-0.5">{{ connection.lastSync }}</p>
+        </div>
+        <button class="w-full mt-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Sincronizar ahora</button>
+      </div>
+    </div>
+    <div class="card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-4">Reglas de sincronizacion</h3>
+      <div class="grid grid-cols-3 gap-3">
+        <div class="rounded-xl bg-[var(--bg-elevated)] p-4">
+          <p class="text-sm font-medium text-[var(--text-primary)]">Crear evento por ticket</p>
+          <p class="text-xs text-[var(--text-muted)] mt-1">Cada ticket programado genera bloque de calendario.</p>
+        </div>
+        <div class="rounded-xl bg-[var(--bg-elevated)] p-4">
+          <p class="text-sm font-medium text-[var(--text-primary)]">Recordatorios 15 min antes</p>
+          <p class="text-xs text-[var(--text-muted)] mt-1">Avisos internos antes de iniciar el trabajo.</p>
+        </div>
+        <div class="rounded-xl bg-[var(--bg-elevated)] p-4">
+          <p class="text-sm font-medium text-[var(--text-primary)]">Bloquear disponibilidad</p>
+          <p class="text-xs text-[var(--text-muted)] mt-1">Evita asignar tickets solapados al tecnico.</p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>
+
+<div *ngIf="showTicketModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="showTicketModal = false">
+  <form class="w-full max-w-2xl card p-6 m-4" (click)="$event.stopPropagation()" (ngSubmit)="createTicket()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">Programar ticket</h3>
+        <p class="text-sm text-[var(--text-muted)]">Crea un ticket que aparecera en la agenda del tecnico.</p>
+      </div>
+      <button type="button" (click)="showTicketModal = false" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <label class="space-y-1.5 col-span-2">
+        <span class="text-xs text-[var(--text-muted)]">Titulo</span>
+        <input [(ngModel)]="ticketForm.title" name="ticketTitle" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="Mantenimiento preventivo" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Cliente o sitio</span>
+        <input [(ngModel)]="ticketForm.customer" name="customer" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="Lima HQ" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Tecnico</span>
+        <select [(ngModel)]="ticketForm.technician" name="ticketTech" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option *ngFor="let tech of technicians.slice(1)" [value]="tech">{{ tech }}</option>
+        </select>
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Dia del mes</span>
+        <input [(ngModel)]="ticketForm.day" name="ticketDay" type="number" min="1" [max]="daysInMonth" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Hora</span>
+        <input [(ngModel)]="ticketForm.start" name="ticketStart" type="time" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Duracion</span>
+        <input [(ngModel)]="ticketForm.duration" name="duration" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="1h 30m" />
+      </label>
+      <label class="space-y-1.5">
+        <span class="text-xs text-[var(--text-muted)]">Prioridad</span>
+        <select [(ngModel)]="ticketForm.priority" name="priority" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none">
+          <option>Baja</option>
+          <option>Media</option>
+          <option>Alta</option>
+          <option>Critica</option>
+        </select>
+      </label>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button type="button" (click)="showTicketModal = false" class="px-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium" style="background: var(--accent); color: var(--bg-base)">Programar</button>
+    </div>
+  </form>
+</div>
+
+<div *ngIf="showReminderModal" class="fixed inset-0 z-50 flex items-center justify-center" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)" (click)="showReminderModal = false">
+  <form class="w-full max-w-md card p-6 m-4" (click)="$event.stopPropagation()" (ngSubmit)="createReminder()">
+    <div class="flex items-start justify-between mb-5">
+      <div>
+        <h3 class="font-semibold text-[var(--text-primary)]">Nuevo recordatorio</h3>
+        <p class="text-sm text-[var(--text-muted)]">Dia {{ selectedDay }} de {{ monthNames[currentMonth] }}</p>
+      </div>
+      <button type="button" (click)="showReminderModal = false" class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"><iconify-icon icon="lucide:x" width="16"></iconify-icon></button>
+    </div>
+    <div class="space-y-3">
+      <label class="space-y-1.5 block">
+        <span class="text-xs text-[var(--text-muted)]">Titulo</span>
+        <input [(ngModel)]="reminderForm.title" name="reminderTitle" required class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" placeholder="Llamar al cliente" />
+      </label>
+      <label class="space-y-1.5 block">
+        <span class="text-xs text-[var(--text-muted)]">Hora</span>
+        <input [(ngModel)]="reminderForm.time" name="reminderTime" type="time" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none" />
+      </label>
+      <label class="space-y-1.5 block">
+        <span class="text-xs text-[var(--text-muted)]">Nota</span>
+        <textarea [(ngModel)]="reminderForm.note" name="reminderNote" rows="3" class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none resize-none" placeholder="Detalle breve del recordatorio"></textarea>
+      </label>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button type="button" (click)="showReminderModal = false" class="px-4 py-2 rounded-xl border border-[var(--border-color)] text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium" style="background: var(--accent); color: var(--bg-base)">Guardar</button>
+    </div>
+  </form>
+</div>

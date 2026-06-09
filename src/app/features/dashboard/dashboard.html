@@ -1,0 +1,208 @@
+﻿<div class="space-y-6 w-full">
+
+    <!-- Welcome banner -->
+    <div class="relative overflow-hidden rounded-2xl p-6 border border-[var(--border-color)]"
+    style="background: linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-card) 60%)">
+    <div class="relative z-10 flex items-center justify-between">
+        <div>
+        <p class="text-[var(--text-muted)] text-sm mb-1">Bienvenida de vuelta‹</p>
+        <h2 class="text-xl font-semibold text-[var(--text-primary)]">Ana Garcí­a</h2>
+        <p class="text-sm text-[var(--text-secondary)] mt-1">
+            Hoy tienes
+            <span class="font-medium" style="color: var(--accent)">3 eventos</span>
+            y
+            <span class="font-medium" style="color: var(--accent)">5 tareas</span>
+            pendientes.
+        </p>
+        </div>
+        <div class="text-right">
+        <p class="text-xs text-[var(--text-muted)]">{{ today | date:'EEEE' | titlecase }}</p>
+        <p class="text-3xl font-bold text-[var(--text-primary)]">{{ today | date:'d' }}</p>
+        <p class="text-xs text-[var(--text-secondary)]">{{ today | date:'MMMM yyyy' | titlecase }}</p>
+        </div>
+    </div>
+    </div>
+
+  <!-- KPI Stats -->
+  <div class="grid grid-cols-4 gap-4">
+    <div *ngFor="let stat of kpiStats"
+      class="card p-5 hover:border-[color:color-mix(in_srgb,var(--accent)_54%,transparent)] transition-all duration-200">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--accent)]"
+          [style.background]="stat.iconBg">
+          <iconify-icon [icon]="'lucide:' + stat.icon" width="18"></iconify-icon>
+        </div>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-lg"
+          [style.background]="stat.trendUp ? 'rgba(49,95,244,0.12)' : 'rgba(239,68,68,0.1)'"
+          [style.color]="stat.trendUp ? '#5b7cff' : '#f87171'">
+          {{ stat.trend }}
+        </span>
+      </div>
+      <p class="text-2xl font-semibold text-[var(--text-primary)]">{{ stat.value }}</p>
+      <p class="text-sm text-[var(--text-secondary)] mt-0.5">{{ stat.label }}</p>
+    </div>
+  </div>
+
+  <!-- Rendimiento + Eventos -->
+  <div class="grid grid-cols-12 gap-4">
+
+    <!-- Rendimiento -->
+    <div class="col-span-5 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-semibold text-[var(--text-primary)]">Rendimiento del equipo</h3>
+        <span class="text-xs text-[var(--text-muted)] bg-[var(--bg-elevated)] px-2.5 py-1 rounded-lg">
+          Este mes
+        </span>
+      </div>
+
+      <div class="flex items-center gap-6 mb-6">
+        <div class="relative w-24 h-24 shrink-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full -rotate-90">
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--bg-elevated)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="40" fill="none" stroke="#315ff4" stroke-width="8"
+              stroke-dasharray="251.2"
+              [attr.stroke-dashoffset]="251.2 * (1 - overallScore / 100)"
+              stroke-linecap="round"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-xl font-bold text-[var(--text-primary)]">{{ overallScore }}%</span>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-[var(--text-primary)] mb-1">Puntuación global</p>
+          <p class="text-xs text-[var(--text-secondary)]">+20% vs mes anterior</p>
+          <div class="flex items-center gap-1.5 mt-2">
+            <iconify-icon icon="lucide:trending-up" width="13" class="text-[var(--accent)]"></iconify-icon>
+            <span class="text-xs text-[var(--accent)] font-medium">Tendencia positiva</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div *ngFor="let metric of performanceMetrics">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[var(--text-secondary)]">{{ metric.label }}</span>
+            <span class="text-xs font-semibold text-[var(--text-primary)]">{{ metric.value }}%</span>
+          </div>
+          <div class="h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-700"
+              [style.width.%]="metric.value"
+              [style.background]="metric.color">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eventos -->
+    <div class="col-span-7 card p-5">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="font-semibold text-[var(--text-primary)]">Próximos eventos</h3>
+        <a class="text-xs text-[var(--accent)] hover:text-[var(--accent-2)] cursor-pointer transition-colors">
+          Ver todos
+        </a>
+      </div>
+
+      <div class="space-y-3">
+        <div *ngFor="let event of upcomingEvents"
+          class="flex items-center gap-4 p-3 rounded-xl bg-[var(--bg-elevated)] hover:border-[var(--border-color)] border border-transparent transition-all cursor-pointer">
+
+          <div class="w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0"
+            [style.background]="event.color + '20'"
+            [style.border]="'1px solid ' + event.color + '40'">
+            <span class="text-[10px] font-medium uppercase" [style.color]="event.color">{{ event.month }}</span>
+            <span class="text-lg font-bold leading-none" [style.color]="event.color">{{ event.day }}</span>
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-[var(--text-primary)] truncate">{{ event.title }}</p>
+            <div class="flex items-center gap-3 mt-0.5">
+              <span class="text-xs text-[var(--text-muted)] flex items-center gap-1">
+                <iconify-icon icon="lucide:clock" width="11"></iconify-icon>
+                {{ event.time }}
+              </span>
+              <span class="text-xs text-[var(--text-muted)] flex items-center gap-1">
+                <iconify-icon icon="lucide:map-pin" width="11"></iconify-icon>
+                {{ event.location }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex -space-x-2 shrink-0">
+            <div *ngFor="let a of event.attendees"
+              class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white border-2 border-[var(--bg-elevated)]"
+              [style.background]="a.color"
+              [title]="a.name">
+              {{ a.initials }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Fila inferior -->
+  <div class="grid grid-cols-12 gap-4">
+
+    <!-- Cumpleaños -->
+    <div class="col-span-4 card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-5">Cumpleaños hoy</h3>
+      <div class="space-y-3">
+        <div *ngFor="let person of todayBirthdays" class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white shrink-0"
+            [style.background]="person.color">
+            {{ person.initials }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-[var(--text-primary)] truncate">{{ person.name }}</p>
+            <p class="text-xs text-[var(--text-muted)] truncate">{{ person.role }}</p>
+          </div>
+          <button class="text-xs px-2.5 py-1 rounded-lg text-[var(--accent)] border border-[color:color-mix(in_srgb,var(--accent)_42%,transparent)] hover:bg-[var(--accent-dim)] transition-all">
+            ðŸ‘‹ Saludar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nuevos ingresos -->
+    <div class="col-span-4 card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-5">Nuevos ingresos</h3>
+      <div class="space-y-3">
+        <div *ngFor="let person of newJoiners" class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold text-white shrink-0"
+            [style.background]="person.color">
+            {{ person.initials }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-[var(--text-primary)] truncate">{{ person.name }}</p>
+            <p class="text-xs text-[var(--text-muted)] truncate">{{ person.role }}</p>
+          </div>
+          <span class="text-[10px] text-[var(--text-muted)] bg-[var(--bg-elevated)] px-2 py-0.5 rounded-lg shrink-0">
+            {{ person.date }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="col-span-4 card p-5">
+      <h3 class="font-semibold text-[var(--text-primary)] mb-5">Accesos rápidos</h3>
+      <div class="space-y-2">
+        <div *ngFor="let link of quickLinks"
+          class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[var(--bg-elevated)] cursor-pointer group transition-all">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+            [style.background]="link.iconBg">
+            <iconify-icon [icon]="'lucide:' + link.icon" width="15" class="text-[var(--accent)]"></iconify-icon>
+          </div>
+          <span class="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] flex-1 transition-colors">
+            {{ link.label }}
+          </span>
+          <iconify-icon icon="lucide:external-link" width="12" class="text-[var(--text-muted)] group-hover:text-[var(--accent)] transition-colors"></iconify-icon>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

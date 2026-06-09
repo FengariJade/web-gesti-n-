@@ -1,0 +1,92 @@
+<div class="w-full space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h2 class="text-2xl font-bold text-[var(--text-primary)]">Trabaje de forma más inteligente, no más intensa</h2>
+    <p class="text-sm text-[var(--text-secondary)] mt-1">Conecte Gestión con las herramientas que conoce y le encantan</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex items-center gap-3 flex-wrap">
+    <div class="relative">
+      <iconify-icon icon="lucide:search" width="13"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+      </iconify-icon>
+      <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar aplicaciones..."
+        class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-56"/>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+      <button *ngFor="let cat of categories"
+        (click)="selectedCategory = cat"
+        class="text-xs px-3 py-1.5 rounded-lg border transition-all"
+        [style.background]="selectedCategory === cat ? 'var(--accent-dim)' : 'transparent'"
+        [style.border-color]="selectedCategory === cat ? 'var(--accent)' : 'var(--border-color)'"
+        [style.color]="selectedCategory === cat ? 'var(--accent)' : 'var(--text-secondary)'">
+        {{ cat === 'todas' ? 'Todas' : cat }}
+      </button>
+    </div>
+
+    <span class="ml-auto text-xs text-[var(--text-muted)]">{{ filtered.length }} aplicaciones</span>
+  </div>
+
+  <!-- Grid de apps -->
+  <div class="grid grid-cols-4 gap-4">
+    <div *ngFor="let app of filtered"
+      class="card p-5 cursor-pointer hover:border-[var(--accent)] transition-all duration-200 group flex flex-col gap-3 relative">
+
+      <!-- Badge -->
+      <div *ngIf="app.badge" class="absolute top-3 right-3">
+        <span *ngIf="app.badge === 'by-atera'"
+          class="text-[10px] font-semibold px-2 py-0.5 rounded-md text-white"
+          style="background: var(--accent)">
+          by ATERA
+        </span>
+        <span *ngIf="app.badge === 'new'"
+          class="text-[10px] font-semibold px-2 py-0.5 rounded-md text-white"
+          style="background: var(--accent-2)">
+          New
+        </span>
+      </div>
+
+      <!-- Header: icono + info -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-white"
+          [style.background]="app.iconBg">
+          <iconify-icon [icon]="app.icon" width="22"></iconify-icon>
+        </div>
+        <div class="min-w-0">
+          <p class="text-[10px] text-[var(--text-muted)]">{{ app.category }}</p>
+          <p class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors truncate">
+            {{ app.name }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <p class="text-xs text-[var(--text-muted)] leading-relaxed line-clamp-3 flex-1">
+        {{ app.description }}
+      </p>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-2 border-t border-[var(--border-color)]">
+        <div class="flex items-center gap-1 text-xs text-[var(--text-muted)]">
+          <iconify-icon *ngIf="app.downloads" icon="lucide:download" width="11"></iconify-icon>
+          <span *ngIf="app.downloads">{{ app.downloads }}</span>
+        </div>
+        <span *ngIf="app.trialDays" class="text-xs text-[var(--text-muted)]">
+          {{ app.trialDays }} Prueba de X días
+        </span>
+      </div>
+
+    </div>
+
+    <div *ngIf="filtered.length === 0"
+      class="col-span-4 card flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+      <iconify-icon icon="lucide:package-search" width="36" class="mb-3 opacity-30"></iconify-icon>
+      <p class="text-sm font-medium">No se encontraron aplicaciones</p>
+      <p class="text-xs mt-1">Intenta con otro término de búsqueda</p>
+    </div>
+  </div>
+
+</div>

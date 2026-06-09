@@ -1,0 +1,159 @@
+<div class="w-full min-h-full flex flex-col">
+
+  <!-- Hero section -->
+  <div class="flex-1 flex items-center justify-between px-8 py-16 max-w-6xl mx-auto w-full">
+
+    <!-- Contenido izquierdo -->
+    <div class="max-w-lg">
+      <h1 class="text-4xl font-bold text-[var(--text-primary)] leading-tight mb-4">
+        Convierte referidos en recompensas
+      </h1>
+      <p class="text-base text-[var(--text-secondary)] leading-relaxed mb-2">
+        Corre la voz sobre Gestión con amigos y colegas.
+      </p>
+      <p class="text-base text-[var(--text-secondary)] leading-relaxed mb-6">
+        Ellos obtienen <span class="font-semibold text-[var(--text-primary)]">3 meses gratis</span>
+        de Network Discovery, tú ganas hasta
+        <span class="font-semibold text-[var(--text-primary)]">$500</span> por referido.
+      </p>
+      <a class="text-sm cursor-pointer transition-colors mb-8 block" style="color: var(--accent-2)">
+        Más información
+      </a>
+
+      <!-- Formulario -->
+      <div *ngIf="!linkUnlocked">
+        <p class="text-xs font-medium text-[var(--text-secondary)] mb-2">Desbloquea tu enlace de referido</p>
+        <div class="flex items-center gap-2">
+          <input [(ngModel)]="email" type="email" placeholder="Ingresa tu email"
+            class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-all"/>
+          <button (click)="unlockLink()"
+            class="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            [style.background]="email.includes('@') ? 'var(--accent)' : 'var(--bg-elevated)'"
+            [style.color]="email.includes('@') ? 'var(--bg-base)' : 'var(--text-muted)'">
+            Desbloquear enlace
+          </button>
+        </div>
+        <p class="text-xs text-[var(--text-muted)] mt-2">
+          Las recompensas serán enviadas a esta dirección.
+          <a class="cursor-pointer transition-colors" style="color: var(--accent-2)">Términos y condiciones</a>
+        </p>
+      </div>
+
+      <!-- Enlace desbloqueado -->
+      <div *ngIf="linkUnlocked" class="space-y-3">
+        <p class="text-xs font-medium text-[var(--text-secondary)]">¡Tu enlace de referido está listo!</p>
+        <div class="flex items-center gap-2">
+          <div class="flex-1 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-sm font-mono text-[var(--text-secondary)] truncate">
+            {{ referralLink }}
+          </div>
+          <button (click)="copyLink()"
+            class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            style="background: var(--accent); color: var(--bg-base)">
+            <iconify-icon icon="lucide:copy" width="14"></iconify-icon>
+            Copiar
+          </button>
+        </div>
+        <div class="flex items-center gap-2 p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-color)]">
+          <iconify-icon icon="lucide:check-circle" width="14" style="color: var(--accent)"></iconify-icon>
+          <p class="text-xs text-[var(--text-secondary)]">
+            Enlace vinculado a <span class="font-medium text-[var(--text-primary)]">{{ email }}</span>
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Ilustración derecha -->
+    <div class="shrink-0 w-80 flex items-center justify-center">
+      <div class="relative w-72 h-72">
+
+        <!-- Círculo decorativo fondo -->
+        <div class="absolute inset-0 rounded-full opacity-10"
+          style="background: radial-gradient(circle, var(--accent), var(--accent-2))"></div>
+
+        <!-- Figura central -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="relative">
+
+            <!-- Portal / puerta -->
+            <div class="w-40 h-48 rounded-t-full border-8 flex items-center justify-center relative"
+              style="border-color: var(--border-color); background: var(--bg-elevated)">
+              <div class="w-28 h-36 rounded-t-full flex items-center justify-center"
+                style="background: linear-gradient(135deg, var(--accent-dim), rgba(0,114,255,0.15))">
+                <iconify-icon icon="lucide:sparkles" width="32" style="color: var(--accent)"></iconify-icon>
+              </div>
+
+              <!-- Personaje izquierdo -->
+              <div class="absolute -left-12 bottom-4 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold"
+                style="background: var(--accent-2)">
+                <iconify-icon icon="lucide:user" width="18"></iconify-icon>
+              </div>
+
+              <!-- Personaje derecho -->
+              <div class="absolute -right-12 bottom-4 w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold"
+                style="background: var(--accent)">
+                <iconify-icon icon="lucide:user" width="18"></iconify-icon>
+              </div>
+            </div>
+
+            <!-- Cofre / gift -->
+            <div class="absolute -right-16 -top-4 w-12 h-12 rounded-xl flex items-center justify-center"
+              style="background: var(--accent-dim); border: 2px solid var(--border-color)">
+              <iconify-icon icon="lucide:gift" width="20" style="color: var(--accent)"></iconify-icon>
+            </div>
+
+            <!-- Monedas flotantes -->
+            <div class="absolute -left-14 -top-2 flex flex-col gap-1">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                style="background: var(--accent); color: var(--bg-base)">$</div>
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ml-2"
+                style="background: var(--accent-2); color: white">$</div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Pasos inferiores -->
+  <div class="border-t border-[var(--border-color)] bg-[var(--bg-elevated)]">
+    <div class="max-w-6xl mx-auto px-8 py-8">
+      <div class="grid grid-cols-3 gap-8">
+
+        <div *ngFor="let step of steps; let i = index" class="flex items-start gap-4">
+
+          <!-- Icono -->
+          <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-[var(--border-color)]"
+            style="background: var(--bg-card)">
+            <iconify-icon [icon]="step.icon" width="24" class="text-[var(--text-secondary)]"></iconify-icon>
+          </div>
+
+          <!-- Contenido -->
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-[var(--text-primary)] mb-1">{{ step.title }}</p>
+            <p *ngIf="step.description" class="text-xs text-[var(--text-muted)] leading-relaxed">
+              {{ step.description }}
+            </p>
+
+            <!-- Rewards especiales para el paso 3 -->
+            <div *ngIf="step.rewards" class="flex items-center gap-2 mt-1">
+              <ng-container *ngFor="let reward of step.rewards; let last = last">
+                <div class="text-center">
+                  <p class="text-xs text-[var(--text-muted)]">{{ reward.position }}</p>
+                  <p class="text-base font-bold text-[var(--text-primary)]">{{ reward.amount }}</p>
+                </div>
+                <iconify-icon *ngIf="!last" icon="lucide:chevron-right" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+              </ng-container>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

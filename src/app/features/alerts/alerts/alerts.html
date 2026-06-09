@@ -1,0 +1,251 @@
+<div class="w-full space-y-4">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--text-primary)]">Alertas</h2>
+      <p class="text-sm text-[var(--text-muted)]">Monitoreo de incidencias del sistema</p>
+    </div>
+    <button class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)]">
+      <iconify-icon icon="lucide:settings-2" width="14"></iconify-icon>
+      Configurar umbrales
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-5 gap-4">
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: var(--accent-dim)">
+        <iconify-icon icon="lucide:bell" width="16" style="color: var(--accent)"></iconify-icon>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.total }}</p>
+        <p class="text-xs text-[var(--text-muted)]">Total</p>
+      </div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10">
+        <iconify-icon icon="lucide:alert-octagon" width="16" class="text-red-500"></iconify-icon>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.criticas }}</p>
+        <p class="text-xs text-[var(--text-muted)]">Críticas</p>
+      </div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-500/10">
+        <iconify-icon icon="lucide:alert-triangle" width="16" class="text-orange-500"></iconify-icon>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.altas }}</p>
+        <p class="text-xs text-[var(--text-muted)]">Altas</p>
+      </div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10">
+        <iconify-icon icon="lucide:circle-dot" width="16" class="text-red-400"></iconify-icon>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.activas }}</p>
+        <p class="text-xs text-[var(--text-muted)]">Activas</p>
+      </div>
+    </div>
+    <div class="card p-4 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--accent-dim)]">
+        <iconify-icon icon="lucide:check-circle" width="16" class="text-[var(--accent)]"></iconify-icon>
+      </div>
+      <div>
+        <p class="text-lg font-bold text-[var(--text-primary)]">{{ stats.resueltas }}</p>
+        <p class="text-xs text-[var(--text-muted)]">Resueltas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra filtros estilo Atera -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative flex-1 min-w-[220px]">
+      <iconify-icon icon="lucide:search" width="13"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+      </iconify-icon>
+      <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar alerta o dispositivo..."
+        class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"/>
+    </div>
+    <select [(ngModel)]="selectedSeverity"
+      class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer min-w-[160px]">
+      <option *ngFor="let s of severities" [value]="s">{{ s === 'todos' ? 'Toda severidad' : s }}</option>
+    </select>
+    <select [(ngModel)]="selectedStatus"
+      class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer min-w-[160px]">
+      <option *ngFor="let s of statuses" [value]="s">{{ s === 'todos' ? 'Todos los estados' : s }}</option>
+    </select>
+    <span class="ml-auto text-xs text-[var(--text-muted)]">
+      Mostrando {{ filtered.length }} de {{ alerts.length }} alertas
+    </span>
+  </div>
+
+  <!-- Acciones bulk -->
+  <div class="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+    <button class="flex items-center gap-1.5 hover:text-red-400 transition-colors">
+      <iconify-icon icon="lucide:trash-2" width="12"></iconify-icon>
+      Eliminar
+    </button>
+    <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+      <iconify-icon icon="lucide:clock" width="12"></iconify-icon>
+      Posponer
+    </button>
+    <button class="flex items-center gap-1.5 hover:text-[var(--text-primary)] transition-colors">
+      <iconify-icon icon="lucide:check-circle" width="12"></iconify-icon>
+      Resolver
+    </button>
+  </div>
+
+  <!-- Lista estilo Atera -->
+  <div class="space-y-2">
+    <div *ngFor="let alert of filtered"
+      (click)="open(alert)"
+      class="card px-5 py-4 cursor-pointer hover:border-[var(--accent)] transition-all duration-200 group"
+      [style.opacity]="alert.status === 'resuelta' ? '0.55' : '1'">
+
+      <div class="flex items-center gap-4">
+
+        <!-- Icono -->
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          [style.background]="severityBg(alert.severity)"
+          [style.color]="severityColor(alert.severity)">
+          <iconify-icon [icon]="severityIcon(alert.severity)" width="17"></iconify-icon>
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 mb-0.5">
+            <p class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+              {{ alert.title }}
+            </p>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize"
+              [style.background]="severityBg(alert.severity)"
+              [style.color]="severityColor(alert.severity)">
+              {{ alert.severity }}
+            </span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize"
+              [style.background]="statusBg(alert.status)"
+              [style.color]="statusColor(alert.status)">
+              {{ alert.status }}
+            </span>
+          </div>
+          <div class="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+            <span class="flex items-center gap-1">
+              <iconify-icon icon="lucide:monitor" width="10"></iconify-icon>
+              {{ alert.device }}
+            </span>
+            <span class="flex items-center gap-1">
+              <iconify-icon icon="lucide:tag" width="10"></iconify-icon>
+              {{ alert.type }}
+            </span>
+            <span class="flex items-center gap-1">
+              <iconify-icon icon="lucide:clock" width="10"></iconify-icon>
+              {{ alert.time }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Acciones rápidas estilo Atera -->
+        <div class="flex items-center gap-2 shrink-0" (click)="$event.stopPropagation()">
+          <button *ngIf="alert.status === 'activa'"
+            (click)="acknowledge(alert, $event)"
+            class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+            Reconocer
+          </button>
+          <button *ngIf="alert.status !== 'resuelta'"
+            (click)="resolve(alert, $event)"
+            class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+            style="background: var(--accent); color: var(--bg-base)">
+            Resolver
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div *ngIf="filtered.length === 0"
+      class="card flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+      <iconify-icon icon="lucide:bell-off" width="36" class="mb-3 opacity-30"></iconify-icon>
+      <p class="text-sm font-medium">No hay alertas con estos filtros</p>
+      <p class="text-xs mt-1">Intenta ajustar los filtros</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal detalle -->
+<div *ngIf="selectedAlert"
+  class="fixed inset-0 z-50 flex items-center justify-center"
+  style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)"
+  (click)="close()">
+  <div class="w-full max-w-lg card p-6 m-4" (click)="$event.stopPropagation()">
+
+    <div class="flex items-start justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center"
+          [style.background]="severityBg(selectedAlert.severity)"
+          [style.color]="severityColor(selectedAlert.severity)">
+          <iconify-icon [icon]="severityIcon(selectedAlert.severity)" width="22"></iconify-icon>
+        </div>
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedAlert.title }}</h3>
+          <p class="text-xs text-[var(--text-muted)]">{{ selectedAlert.device }} · {{ selectedAlert.time }}</p>
+        </div>
+      </div>
+      <button (click)="close()"
+        class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:x" width="16"></iconify-icon>
+      </button>
+    </div>
+
+    <p class="text-sm text-[var(--text-secondary)] bg-[var(--bg-elevated)] p-3 rounded-xl mb-4">
+      {{ selectedAlert.description }}
+    </p>
+
+    <div class="space-y-2 mb-5">
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:tag" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-24">Tipo</span>
+        <span class="text-sm text-[var(--text-primary)]">{{ selectedAlert.type }}</span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:alert-triangle" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-24">Severidad</span>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-lg capitalize"
+          [style.background]="severityBg(selectedAlert.severity)"
+          [style.color]="severityColor(selectedAlert.severity)">
+          {{ selectedAlert.severity }}
+        </span>
+      </div>
+      <div class="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)]">
+        <iconify-icon icon="lucide:activity" width="14" class="text-[var(--text-muted)]"></iconify-icon>
+        <span class="text-xs text-[var(--text-muted)] w-24">Estado</span>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-lg capitalize"
+          [style.background]="statusBg(selectedAlert.status)"
+          [style.color]="statusColor(selectedAlert.status)">
+          {{ selectedAlert.status }}
+        </span>
+      </div>
+    </div>
+
+    <div class="flex gap-2">
+      <button *ngIf="selectedAlert.status === 'activa'"
+        (click)="acknowledge(selectedAlert, $event); close()"
+        class="flex-1 flex items-center justify-center gap-2 border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm py-2 rounded-xl transition-all">
+        <iconify-icon icon="lucide:eye" width="14"></iconify-icon>
+        Reconocer
+      </button>
+      <button *ngIf="selectedAlert.status !== 'resuelta'"
+        (click)="resolve(selectedAlert, $event); close()"
+        class="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-xl transition-all"
+        style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:check" width="14"></iconify-icon>
+        Marcar como resuelta
+      </button>
+    </div>
+
+  </div>
+</div>

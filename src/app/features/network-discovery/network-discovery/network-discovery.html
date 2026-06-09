@@ -1,0 +1,182 @@
+<div class="w-full space-y-5" (click)="closeDropdown()">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-xl font-bold text-[var(--text-primary)]">Network Discovery</h2>
+      <p class="text-sm text-[var(--text-secondary)] mt-1">
+        Detecte las redes de su empresa con análisis continuos que le muestran todo lo que hay en la red.
+        <a class="cursor-pointer transition-colors" style="color: var(--accent-2)">Más información</a>
+      </p>
+    </div>
+
+    <!-- Banner trial -->
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="flex items-center gap-2 text-xs text-[var(--text-muted)] bg-[var(--bg-elevated)] border border-[var(--border-color)] px-3 py-2 rounded-xl">
+        <iconify-icon icon="lucide:clock" width="13"></iconify-icon>
+        30 días para probar la detección de redes con Network Discovery.
+      </div>
+      <button class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:bell" width="14"></iconify-icon>
+        Gestionar alertas
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative">
+      <iconify-icon icon="lucide:search" width="13"
+        class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+      </iconify-icon>
+      <input [(ngModel)]="searchQuery" type="text" placeholder="Buscar..."
+        class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg pl-8 pr-4 py-1.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none w-52"/>
+    </div>
+    <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+      <iconify-icon icon="lucide:map-pin" width="12"></iconify-icon>
+      Ubicaciones
+    </button>
+    <button class="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+      style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+      <iconify-icon icon="lucide:activity" width="12"></iconify-icon>
+      Estado del análisis
+    </button>
+    <span class="text-xs text-[var(--text-muted)]">Mostrando {{ filtered.length }} de {{ sites.length }} sitios</span>
+    <button class="ml-auto p-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+      <iconify-icon icon="lucide:sliders-horizontal" width="14"></iconify-icon>
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+          <th class="px-4 py-2.5 w-8">
+            <input type="checkbox" class="rounded"/>
+          </th>
+          <th class="w-10"></th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Nombre de la ubicación</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">IP pública</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Red</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estaciones de trabajo/servidores</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">SNMP</th>
+          <th class="text-left px-4 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado del análisis</th>
+          <th class="px-4 py-2.5"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let site of filtered"
+          class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] transition-all group">
+
+          <td class="px-4 py-3">
+            <input type="checkbox" class="rounded" (click)="$event.stopPropagation()"/>
+          </td>
+
+          <!-- Icono animado -->
+          <td class="px-2 py-3">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+              [style.background]="site.analysisStatus === 'activo' ? 'rgba(0,196,94,0.1)' : 'var(--bg-elevated)'">
+              <iconify-icon icon="lucide:radar"
+                width="14"
+                [style.color]="statusColor(site.analysisStatus)">
+              </iconify-icon>
+            </div>
+          </td>
+
+          <!-- Nombre -->
+          <td class="px-4 py-3">
+            <p class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+              {{ site.name }}
+            </p>
+          </td>
+
+          <!-- IP pública -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.publicIp" class="text-sm font-mono text-[var(--text-secondary)]">
+              {{ site.publicIp }}
+            </span>
+            <span *ngIf="!site.publicIp" class="text-xs text-[var(--text-muted)]">—</span>
+          </td>
+
+          <!-- Red -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.network" class="text-sm font-mono text-[var(--text-secondary)]">
+              {{ site.network }}
+            </span>
+            <span *ngIf="!site.network" class="text-xs text-[var(--text-muted)]">—</span>
+          </td>
+
+          <!-- Workstations -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.workstations > 0" class="text-sm text-[var(--text-secondary)]">
+              {{ site.workstations }}
+            </span>
+            <span *ngIf="site.workstations === 0" class="text-xs text-[var(--text-muted)]">—</span>
+          </td>
+
+          <!-- SNMP -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.snmp > 0" class="text-sm text-[var(--text-secondary)]">
+              {{ site.snmp }}
+            </span>
+            <span *ngIf="site.snmp === 0" class="text-xs text-[var(--text-muted)]">—</span>
+          </td>
+
+          <!-- Estado -->
+          <td class="px-4 py-3">
+            <span *ngIf="site.analysisStatus !== 'sin agente'"
+              class="text-xs font-medium px-2 py-0.5 rounded-lg capitalize flex items-center gap-1.5 w-fit"
+              [style.background]="statusBg(site.analysisStatus)"
+              [style.color]="statusColor(site.analysisStatus)">
+              <span class="w-1.5 h-1.5 rounded-full" [style.background]="statusColor(site.analysisStatus)"></span>
+              {{ site.analysisStatus }}
+            </span>
+            <span *ngIf="site.analysisStatus === 'sin agente'"
+              class="text-xs text-[var(--text-muted)]">—</span>
+          </td>
+
+          <!-- Acción: Instalar agente con dropdown -->
+          <td class="px-4 py-3">
+            <div class="relative flex justify-end" (click)="$event.stopPropagation()">
+              <button
+                (click)="toggleDropdown(site.id, $event)"
+                class="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all"
+                style="border-color: var(--accent-2); color: var(--accent-2); background: rgba(0,114,255,0.08)">
+                <iconify-icon icon="lucide:download" width="12"></iconify-icon>
+                Instalar agente
+                <iconify-icon icon="lucide:chevron-down" width="11"></iconify-icon>
+              </button>
+
+              <!-- Dropdown -->
+              <div *ngIf="openDropdownId === site.id"
+                class="absolute top-full right-0 mt-1 w-56 card shadow-lg z-30 overflow-hidden py-1">
+                <button class="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all flex items-center gap-2">
+                  <iconify-icon icon="lucide:download" width="13" class="text-[var(--text-muted)]"></iconify-icon>
+                  Descargar el agente de Windows
+                </button>
+                <button class="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all flex items-center gap-2">
+                  <iconify-icon icon="lucide:terminal" width="13" class="text-[var(--text-muted)]"></iconify-icon>
+                  Copiar secuencia de comandos CLI
+                </button>
+                <button class="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all flex items-center gap-2">
+                  <iconify-icon icon="lucide:link" width="13" class="text-[var(--text-muted)]"></iconify-icon>
+                  Copiar vínculo de instalador de Windows
+                </button>
+              </div>
+            </div>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filtered.length === 0"
+      class="flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+      <iconify-icon icon="lucide:network" width="36" class="mb-3 opacity-30"></iconify-icon>
+      <p class="text-sm font-medium">No se encontraron redes</p>
+      <p class="text-xs mt-1">Intenta ajustar los filtros</p>
+    </div>
+  </div>
+
+</div>

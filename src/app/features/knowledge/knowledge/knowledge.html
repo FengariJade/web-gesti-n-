@@ -1,0 +1,307 @@
+<div class="w-full space-y-5">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-lg font-semibold text-[var(--text-primary)]">Centro de base de conocimientos</h2>
+      <p class="text-xs text-[var(--text-muted)] mt-0.5">Inicio › Base de conocimientos</p>
+    </div>
+    <button class="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl transition-all"
+      style="background: var(--accent); color: var(--bg-base)">
+      <iconify-icon icon="lucide:plus" width="14"></iconify-icon>
+      Nuevo artículo
+    </button>
+  </div>
+
+  <!-- Buscador central -->
+  <div class="card p-3">
+    <div class="relative flex items-center gap-2">
+      <div class="relative flex-1">
+        <iconify-icon icon="lucide:search" width="15"
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+        </iconify-icon>
+        <input [(ngModel)]="searchQuery" type="text"
+          placeholder="¿Tiene alguna pregunta? Ingrese una palabra clave (#ejemplo)"
+          class="w-full bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-all"/>
+      </div>
+      <button class="p-2.5 rounded-xl border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] transition-all">
+        <iconify-icon icon="lucide:search" width="16"></iconify-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Layout principal: contenido + sidebar -->
+  <div class="grid grid-cols-12 gap-5">
+
+    <!-- Contenido principal -->
+    <div class="col-span-9 space-y-4">
+
+      <!-- Filtros + toggle -->
+      <div class="flex items-center gap-2">
+        <select [(ngModel)]="selectedCategory"
+          class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer">
+          <option *ngFor="let c of categories" [value]="c">{{ c === 'todas' ? 'Todas las categorías' : c }}</option>
+        </select>
+        <select [(ngModel)]="selectedStatus"
+          class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-secondary)] focus:outline-none cursor-pointer">
+          <option *ngFor="let s of statuses" [value]="s">{{ s === 'todos' ? 'Todos los estados' : s }}</option>
+        </select>
+        <span class="ml-auto text-xs text-[var(--text-muted)]">{{ filtered.length }} artículos</span>
+        <div class="flex items-center gap-1 bg-[var(--bg-elevated)] border border-[var(--border-color)] rounded-lg p-0.5">
+          <button (click)="viewMode = 'grid'"
+            class="p-1.5 rounded-md transition-all"
+            [style.background]="viewMode === 'grid' ? 'var(--accent-dim)' : 'transparent'"
+            [style.color]="viewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)'">
+            <iconify-icon icon="lucide:layout-grid" width="14"></iconify-icon>
+          </button>
+          <button (click)="viewMode = 'list'"
+            class="p-1.5 rounded-md transition-all"
+            [style.background]="viewMode === 'list' ? 'var(--accent-dim)' : 'transparent'"
+            [style.color]="viewMode === 'list' ? 'var(--accent)' : 'var(--text-muted)'">
+            <iconify-icon icon="lucide:list" width="14"></iconify-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div *ngIf="viewMode === 'grid'" class="grid grid-cols-2 gap-4">
+        <div *ngFor="let article of filtered"
+          (click)="open(article)"
+          class="card p-5 cursor-pointer hover:border-[var(--accent)] transition-all duration-200 group flex flex-col gap-3">
+          <div class="flex items-start justify-between">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--bg-elevated)]">
+              <iconify-icon [icon]="categoryIcon(article.category)" width="15" class="text-[var(--text-secondary)]"></iconify-icon>
+            </div>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded-lg"
+              [style.background]="statusBg(article.status)"
+              [style.color]="statusColor(article.status)">
+              {{ article.status }}
+            </span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors leading-snug mb-1">
+              {{ article.title }}
+            </p>
+            <p class="text-xs text-[var(--text-muted)] line-clamp-2">{{ article.content }}</p>
+          </div>
+          <div class="flex flex-wrap gap-1">
+            <span *ngFor="let tag of article.tags.slice(0,3)"
+              class="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+              #{{ tag }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-[var(--border-color)]">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+                [style.background]="article.authorColor">
+                {{ article.authorInitials }}
+              </div>
+              <span class="text-xs text-[var(--text-muted)]">{{ article.author }}</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-[var(--text-muted)]">
+              <span class="flex items-center gap-1">
+                <iconify-icon icon="lucide:eye" width="10"></iconify-icon>{{ article.views }}
+              </span>
+              <span class="flex items-center gap-1" style="color: var(--accent)">
+                <iconify-icon icon="lucide:thumbs-up" width="10"></iconify-icon>{{ article.helpful }}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filtered.length === 0"
+          class="col-span-2 card flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
+          <iconify-icon icon="lucide:file-search" width="36" class="mb-3 opacity-30"></iconify-icon>
+          <p class="text-sm font-medium">No se encontraron artículos</p>
+          <p class="text-xs mt-1">Intenta ajustar los filtros</p>
+        </div>
+      </div>
+
+      <!-- Lista -->
+      <div *ngIf="viewMode === 'list'" class="card overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-[var(--border-color)] bg-[var(--bg-elevated)]">
+              <th class="text-left px-5 py-2.5 text-xs text-[var(--text-muted)] font-medium">Artículo</th>
+              <th class="text-left px-5 py-2.5 text-xs text-[var(--text-muted)] font-medium">Categoría</th>
+              <th class="text-left px-5 py-2.5 text-xs text-[var(--text-muted)] font-medium">Autor</th>
+              <th class="text-left px-5 py-2.5 text-xs text-[var(--text-muted)] font-medium">Estado</th>
+              <th class="text-left px-5 py-2.5 text-xs text-[var(--text-muted)] font-medium">Vistas</th>
+              <th class="text-left px-5 py-2.5 text-xs text-[var(--text-muted)] font-medium">Útil</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let article of filtered"
+              (click)="open(article)"
+              class="border-b border-[var(--border-color)] hover:bg-[var(--bg-elevated)] cursor-pointer transition-all group">
+              <td class="px-5 py-3">
+                <p class="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">{{ article.title }}</p>
+                <div class="flex gap-1 mt-1">
+                  <span *ngFor="let tag of article.tags.slice(0,2)"
+                    class="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+                    #{{ tag }}
+                  </span>
+                </div>
+              </td>
+              <td class="px-5 py-3">
+                <span class="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                  <iconify-icon [icon]="categoryIcon(article.category)" width="12"></iconify-icon>
+                  {{ article.category }}
+                </span>
+              </td>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
+                    [style.background]="article.authorColor">{{ article.authorInitials }}</div>
+                  <span class="text-xs text-[var(--text-secondary)]">{{ article.author }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-3">
+                <span class="text-xs font-medium px-2 py-0.5 rounded-lg"
+                  [style.background]="statusBg(article.status)"
+                  [style.color]="statusColor(article.status)">
+                  {{ article.status }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-sm text-[var(--text-secondary)]">{{ article.views }}</td>
+              <td class="px-5 py-3">
+                <span class="text-sm font-medium" style="color: var(--accent)">{{ article.helpful }}%</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="filtered.length === 0"
+          class="flex flex-col items-center justify-center py-12 text-[var(--text-muted)]">
+          <iconify-icon icon="lucide:file-search" width="32" class="mb-3 opacity-30"></iconify-icon>
+          <p class="text-sm">No se encontraron artículos</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar derecho estilo Atera -->
+    <div class="col-span-3 space-y-4">
+
+      <!-- ¿Necesita ayuda? -->
+      <div class="card p-4 border-l-4" style="border-left-color: var(--accent-2)">
+        <p class="text-sm font-semibold text-[var(--text-primary)] mb-1">¿Necesita ayuda?</p>
+        <p class="text-xs text-[var(--text-muted)] mb-2">¿No encontró lo que buscaba?</p>
+        <a class="text-xs cursor-pointer transition-colors" style="color: var(--accent-2)">
+          Obtener más información
+        </a>
+        <span class="text-xs text-[var(--text-muted)]"> acerca de la base de conocimientos</span>
+      </div>
+
+      <!-- Artículos populares -->
+      <div class="card p-4">
+        <p class="text-sm font-semibold text-[var(--text-primary)] mb-3">Artículos populares</p>
+        <div class="space-y-2">
+          <div *ngFor="let a of popular"
+            (click)="open(a)"
+            class="flex items-start gap-2 cursor-pointer group">
+            <iconify-icon icon="lucide:file-text" width="13" class="text-[var(--text-muted)] mt-0.5 shrink-0"></iconify-icon>
+            <p class="text-xs text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors leading-snug">
+              {{ a.title }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Artículos recientes -->
+      <div class="card p-4">
+        <p class="text-sm font-semibold text-[var(--text-primary)] mb-3">Artículos más recientes</p>
+        <div class="space-y-2">
+          <div *ngFor="let a of recent"
+            (click)="open(a)"
+            class="flex items-start gap-2 cursor-pointer group">
+            <iconify-icon icon="lucide:clock" width="13" class="text-[var(--text-muted)] mt-0.5 shrink-0"></iconify-icon>
+            <div>
+              <p class="text-xs text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors leading-snug">
+                {{ a.title }}
+              </p>
+              <p class="text-[10px] text-[var(--text-muted)]">{{ a.updated }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Palabras clave -->
+      <div class="card p-4">
+        <p class="text-sm font-semibold text-[var(--text-primary)] mb-3">Palabras clave</p>
+        <div class="flex flex-wrap gap-1.5">
+          <span *ngFor="let tag of allTags"
+            (click)="searchQuery = tag"
+            class="text-xs px-2.5 py-1 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:border-[var(--accent)] cursor-pointer transition-all"
+            [style.color]="searchQuery === tag ? 'var(--accent)' : ''"
+            [style.border-color]="searchQuery === tag ? 'var(--accent)' : ''">
+            #{{ tag }}
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Modal detalle -->
+<div *ngIf="selectedArticle"
+  class="fixed inset-0 z-50 flex items-center justify-center"
+  style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px)"
+  (click)="close()">
+  <div class="w-full max-w-lg card p-6 m-4" (click)="$event.stopPropagation()">
+    <div class="flex items-start justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--bg-elevated)]">
+          <iconify-icon [icon]="categoryIcon(selectedArticle.category)" width="18" class="text-[var(--text-secondary)]"></iconify-icon>
+        </div>
+        <div>
+          <h3 class="font-semibold text-[var(--text-primary)]">{{ selectedArticle.title }}</h3>
+          <p class="text-xs text-[var(--text-muted)]">{{ selectedArticle.category }} · {{ selectedArticle.updated }}</p>
+        </div>
+      </div>
+      <button (click)="close()"
+        class="p-1.5 rounded-lg hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] transition-all">
+        <iconify-icon icon="lucide:x" width="16"></iconify-icon>
+      </button>
+    </div>
+    <p class="text-sm text-[var(--text-secondary)] bg-[var(--bg-elevated)] p-4 rounded-xl mb-4 leading-relaxed">
+      {{ selectedArticle.content }}
+    </p>
+    <div class="flex flex-wrap gap-1 mb-4">
+      <span *ngFor="let tag of selectedArticle.tags"
+        class="text-xs px-2 py-0.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+        #{{ tag }}
+      </span>
+    </div>
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+          [style.background]="selectedArticle.authorColor">
+          {{ selectedArticle.authorInitials }}
+        </div>
+        <span class="text-sm text-[var(--text-secondary)]">{{ selectedArticle.author }}</span>
+      </div>
+      <div class="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+        <span class="flex items-center gap-1">
+          <iconify-icon icon="lucide:eye" width="12"></iconify-icon>{{ selectedArticle.views }} vistas
+        </span>
+        <span class="flex items-center gap-1" style="color: var(--accent)">
+          <iconify-icon icon="lucide:thumbs-up" width="12"></iconify-icon>{{ selectedArticle.helpful }}% útil
+        </span>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button class="flex-1 flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-xl transition-all"
+        style="background: var(--accent); color: var(--bg-base)">
+        <iconify-icon icon="lucide:edit" width="14"></iconify-icon>
+        Editar artículo
+      </button>
+      <button class="flex items-center justify-center gap-2 border border-[var(--border-color)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm px-4 py-2 rounded-xl transition-all">
+        <iconify-icon icon="lucide:share-2" width="14"></iconify-icon>
+        Compartir
+      </button>
+    </div>
+  </div>
+</div>
